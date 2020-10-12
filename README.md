@@ -6,6 +6,7 @@ By default, the script applies to all metrics enabled for monitoring accross the
 You can restrict the scope by defining either a specific resource group, using the rgazresources variable, and/or a specific resource type, using the azrestype variable.
 
 **Folder Structure**
+
 The script must be located at the root while the CSV file must be located within a subfolder named like your Azure subscription.
 * The 2 JSON files co-located with the script are the metric templates. Different templates are used depending of the resource type.
 * The 2 JSON files co-located with the CSV file - in the subfolder - are the parameters files to use with the corresponding templates.
