@@ -1,5 +1,5 @@
 # Azure-Monitoring
-Automated Azure Monitoring
+**Automated Azure Monitoring**
 
 You can use this script to automatically set monitoring threshold on Azure resources.
 By default, the script applies to all metrics enabled for monitoring accross the entire subscription.
