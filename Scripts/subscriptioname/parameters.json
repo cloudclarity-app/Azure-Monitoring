@@ -1,0 +1,45 @@
+{
+    "$schema":  "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion":  "1.0.0.0",
+    "parameters":  {
+                       "alertName":  {
+                                         "value":  "Alert name"
+                                     },
+                       "alertDescription":  {
+                                                "value":  "Alert description"
+                                            },
+                       "alertSeverity":  {
+                                             "value":  3
+                                         },
+                       "isEnabled":  {
+                                         "value":  true
+                                     },
+                       "resourceId":  {
+                                          "value":  "resource ID"
+                                      },
+                       "metricName":  {
+                                          "value":  "metric name"
+                                      },
+                       "metricNamespace":  {
+                                               "value":  "metric namespace"
+                                           },
+                       "operator":  {
+                                        "value":  "operator"
+                                    },
+                       "threshold":  {
+                                         "value":  "threshold"
+                                     },
+                       "timeAggregation":  {
+                                               "value":  "time aggregation"
+                                           },
+                       "evaluationFrequency":  {
+                                                   "value":  "evaluation frequency"
+                                               },
+                       "windowSize":  {
+                                          "value":  "window size"
+                                      },
+                       "actionGroupId":  {
+                                             "value":  "action group ID"
+                                         }
+                    }
+}
