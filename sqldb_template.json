@@ -2,49 +2,116 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-                       "alertName":  {
-                                         "value":  "bhasql/ccnswsqlassess-cpu_percent"
-                                     },
-                       "alertDescription":  {
-                                                "value":  "CPU percentage"
-                                            },
-                       "alertSeverity":  {
-                                             "value":  1
-                                         },
-                       "isEnabled":  {
-                                         "value":  true
-                                     },
-                       "resourceId":  {
-                                          "value":  "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/benoithrg/providers/Microsoft.Sql/servers/bhasql/databases/ccnswsqlassess"
-                                      },
-                       "metricName":  {
-                                          "value":  "cpu_percent"
-                                      },
-                       "metricNamespace":  {
-                                               "value":  "Microsoft.Sql"
-                                           },
-                       "operator":  {
-                                        "value":  "GreaterThanOrEqual"
-                                    },
-                       "threshold":  {
-                                         "value":  "80"
-                                     },
-                       "timeAggregation":  {
-                                               "value":  "Average"
-                                           },
-                       "evaluationFrequency":  {
-                                                   "value":  "PT1H"
-                                               },
-                       "windowSize":  {
-                                          "value":  "PT1H"
-                                      },
-                       "targetResourceType":  {
-                                          "value":  "PT1H"
-                                      },
-                       "actionGroupId":  {
-                                             "value":  "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/cubesys-prd-monitoring/providers/microsoft.insights/actionGroups/cubesys - Monitoring"
-                                         }
-    },
+        "alertName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Name of the alert"
+            }
+        },
+        "alertDescription": {
+            "type": "string",
+            "defaultValue": "This is a metric alert",
+            "metadata": {
+                "description": "Description of alert"
+            }
+        },
+        "alertSeverity": {
+            "type": "int",
+            "defaultValue": 3,
+            "allowedValues": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ]},
+            "metadata": {
+                "description": "Severity of alert {0,1,2,3,4}"
+            }
+        },
+        "isEnabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Specifies whether the alert is enabled"
+            }
+        },
+        "resourceId": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Full Resource ID of the resource emitting the metric that will be used for the comparison. For example /subscriptions/00000000-0000-0000-0000-0000-00000000/resourceGroups/ResourceGroupName/providers/Microsoft.compute/virtualMachines/VM_xyz"
+            }
+        },
+        "metricName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Name of the metric used in the comparison to activate the alert."
+            }
+        },
+        "metricNamespace": {
+            "type": "string",
+            "defaultValue": "Microsoft.Web",
+            "minLength": 1,
+            "metadata": {
+                "description": "Name of the metricnamespace used."
+            }
+        },
+        "operator": {
+            "type": "string",
+            "defaultValue": "GreaterThan",
+            "allowedValues": [
+                "Equals",
+                "NotEquals",
+                "GreaterThan",
+                "GreaterThanOrEqual",
+                "LessThan",
+                "LessThanOrEqual"
+            ],
+            "metadata": {
+                "description": "Operator comparing the current value with the threshold value."
+            }
+        },
+        "threshold": {
+            "type": "string",
+            "defaultValue": "0",
+            "metadata": {
+                "description": "The threshold value at which the alert is activated."
+            }
+        },
+        "timeAggregation": {
+            "type": "string",
+            "defaultValue": "Average",
+            "allowedValues": [
+                "Average",
+                "Minimum",
+                "Maximum",
+                "Total"
+            ],
+            "metadata": {
+                "description": "How the data that is collected should be combined over time."
+            }
+        },
+        "windowSize": {
+            "type": "string",
+            "defaultValue": "PT30M",
+            "metadata": {
+                "description": "Period of time used to monitor alert activity based on the threshold. Must be between five minutes and one day. ISO 8601 duration format."
+            }
+        },
+        "targetResourceType": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "actionGroupId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The ID of the action group that is triggered when the alert is activated or deactivated"
+            }
+        },
     "variables": {},
     "resources": [
         {
@@ -53,7 +120,7 @@
             "name": "[parameters('alertName')]",
             "location": "global",
             "properties": {
-                "severity": 3,
+                "severity": "[parameters('alertSeverity')]",
                 "enabled": true,
                 "scopes": [
                     "[parameters('resourceId')]"
@@ -64,7 +131,7 @@
                     "allOf": [
                         {
                             "threshold": "[parameters('threshold')]",
-                            "name": "Metric1",
+                            "name": "[parameters('metricNamespace')]",
                             "metricNamespace": "[parameters('metricNamespace')]",
                             "metricName": "[parameters('metricName')]",
                             "dimensions": [],
@@ -83,7 +150,7 @@
                         "actionGroupId": "[parameters('actionGroupId')]",
                         "webHookProperties": {}
                     }
-                ],
+                ]},
                 "description": "[parameters('alertDescription')]"
             }
         }
