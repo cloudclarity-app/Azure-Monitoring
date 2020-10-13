@@ -1,0 +1,91 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+                       "alertName":  {
+                                         "value":  "bhasql/ccnswsqlassess-cpu_percent"
+                                     },
+                       "alertDescription":  {
+                                                "value":  "CPU percentage"
+                                            },
+                       "alertSeverity":  {
+                                             "value":  1
+                                         },
+                       "isEnabled":  {
+                                         "value":  true
+                                     },
+                       "resourceId":  {
+                                          "value":  "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/benoithrg/providers/Microsoft.Sql/servers/bhasql/databases/ccnswsqlassess"
+                                      },
+                       "metricName":  {
+                                          "value":  "cpu_percent"
+                                      },
+                       "metricNamespace":  {
+                                               "value":  "Microsoft.Sql"
+                                           },
+                       "operator":  {
+                                        "value":  "GreaterThanOrEqual"
+                                    },
+                       "threshold":  {
+                                         "value":  "80"
+                                     },
+                       "timeAggregation":  {
+                                               "value":  "Average"
+                                           },
+                       "evaluationFrequency":  {
+                                                   "value":  "PT1H"
+                                               },
+                       "windowSize":  {
+                                          "value":  "PT1H"
+                                      },
+                       "targetResourceType":  {
+                                          "value":  "PT1H"
+                                      },
+                       "actionGroupId":  {
+                                             "value":  "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/cubesys-prd-monitoring/providers/microsoft.insights/actionGroups/cubesys - Monitoring"
+                                         }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "microsoft.insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[parameters('alertName')]",
+            "location": "global",
+            "properties": {
+                "severity": 3,
+                "enabled": true,
+                "scopes": [
+                    "[parameters('resourceId')]"
+                ],
+                "evaluationFrequency": "[parameters('evaluationFrequency')]",
+                "windowSize": "[parameters('windowSize')]",
+                "criteria": {
+                    "allOf": [
+                        {
+                            "threshold": "[parameters('threshold')]",
+                            "name": "Metric1",
+                            "metricNamespace": "[parameters('metricNamespace')]",
+                            "metricName": "[parameters('metricName')]",
+                            "dimensions": [],
+                            "operator": "[parameters('operator')]",
+                            "timeAggregation": "[parameters('timeAggregation')]",
+                            "criterionType": "StaticThresholdCriterion"
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+                },
+                "autoMitigate": true,
+                "targetResourceType": "[parameters('targetResourceType')]",
+                "targetResourceRegion": "australiaeast",
+                "actions": [
+                    {
+                        "actionGroupId": "[parameters('actionGroupId')]",
+                        "webHookProperties": {}
+                    }
+                ],
+                "description": "[parameters('alertDescription')]"
+            }
+        }
+    ]
+}
