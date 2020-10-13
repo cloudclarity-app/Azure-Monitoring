@@ -3,15 +3,15 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "alertName": {
-            "defaultValue": "alertname",
+            "value": "alertname",
             "type": "String"
         },
         "resourceId": {
-            "defaultValue": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/benoithrg/providers/Microsoft.Sql/servers/prdprj2336",
+            "value": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/benoithrg/providers/Microsoft.Sql/servers/prdprj2336",
             "type": "String"
         },
         "actionGroupId": {
-            "defaultValue": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/cubesys-prd-monitoring/providers/microsoft.insights/actiongroups/cubesys - monitoring",
+            "value": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/cubesys-prd-monitoring/providers/microsoft.insights/actiongroups/cubesys - monitoring",
             "type": "String"
         }
     },
