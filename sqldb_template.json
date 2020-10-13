@@ -2,9 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "alertDescription": {
-            "type": "SecureString"
-        },
         "alertName": {
             "value": "Name of the alert",
             "type": "String"
@@ -13,6 +10,36 @@
             "value": "",
             "type": "String"
         },
+                       "alertSeverity":  {
+                                             "value":  1
+                                         },
+                       "isEnabled":  {
+                                         "value":  true
+                                     },
+                       "resourceId":  {
+                                          "value":  "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/benoithrg/providers/Microsoft.Storage/storageAccounts/benoitstrtest01"
+                                      },
+                       "metricName":  {
+                                          "value":  "Availability"
+                                      },
+                       "metricNamespace":  {
+                                               "value":  "Microsoft.Storage"
+                                           },
+                       "operator":  {
+                                        "value":  "LessThan"
+                                    },
+                       "threshold":  {
+                                         "value":  "100"
+                                     },
+                       "timeAggregation":  {
+                                               "value":  "Average"
+                                           },
+                       "evaluationFrequency":  {
+                                                   "value":  "PT1H"
+                                               },
+                       "windowSize":  {
+                                          "value":  "PT1H"
+                                      },
         "actionGroupId": {
             "value": "",
             "type": "String"
@@ -26,30 +53,30 @@
             "name": "[parameters('alertName')]",
             "location": "global",
             "properties": {
-                "severity": 3,
-                "enabled": true,
+                "severity": "[parameters('alertSeverity')]",
+                "enabled": "[parameters('isEnabled')]",
                 "scopes": [
-                    "[concat(parameters('servers_prdprj2336_externalid'), '/databases/ehealth_apps_profile_forms')]"
+                    "[parameters('resourceId')]"
                 ],
-                "evaluationFrequency": "PT1M",
-                "windowSize": "PT5M",
+                "evaluationFrequency": "[parameters('evaluationFrequency')]",
+                "windowSize": "[parameters('windowSize')]",
                 "criteria": {
                     "allOf": [
                         {
-                            "threshold": 50,
-                            "name": "Metric1",
-                            "metricNamespace": "Microsoft.Sql/servers/databases",
-                            "metricName": "cpu_percent",
+                            "threshold": "[parameters('threshold')]",
+                            "name": "[parameters('metricName')]",
+                            "metricNamespace": "[parameters('metricNamespace')]",
+                            "metricName": "[parameters('metricName')]",
                             "dimensions": [],
-                            "operator": "GreaterThan",
-                            "timeAggregation": "Average",
+                            "operator": "[parameters('operator')]",
+                            "timeAggregation": "[parameters('timeAggregation')]",
                             "criterionType": "StaticThresholdCriterion"
                         }
                     ],
                     "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
                 },
                 "autoMitigate": true,
-                "targetResourceType": "Microsoft.Sql/servers/databases",
+                "targetResourceType": "[parameters('metricNamespace')]",
                 "targetResourceRegion": "australiaeast",
                 "actions": [
                     {
