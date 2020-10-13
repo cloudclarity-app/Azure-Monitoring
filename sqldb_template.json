@@ -2,16 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "alertName": {
-            "value": "alertname",
+        "metricAlerts_alertname_name": {
+            "defaultValue": "alertname",
             "type": "String"
         },
-        "resourceId": {
-            "value": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/benoithrg/providers/Microsoft.Sql/servers/prdprj2336",
+        "servers_prdprj2336_externalid": {
+            "defaultValue": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/benoithrg/providers/Microsoft.Sql/servers/prdprj2336",
             "type": "String"
         },
-        "actionGroupId": {
-            "value": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/cubesys-prd-monitoring/providers/microsoft.insights/actiongroups/cubesys - monitoring",
+        "actiongroups_cubesys___monitoring_externalid": {
+            "defaultValue": "/subscriptions/d8e00458-b344-4066-891a-d800abf92800/resourceGroups/cubesys-prd-monitoring/providers/microsoft.insights/actiongroups/cubesys - monitoring",
             "type": "String"
         }
     },
@@ -20,14 +20,14 @@
         {
             "type": "microsoft.insights/metricAlerts",
             "apiVersion": "2018-03-01",
-            "name": "[parameters('alertName')]",
+            "name": "[parameters('metricAlerts_alertname_name')]",
             "location": "global",
             "properties": {
                 "description": "alertdescription",
                 "severity": 3,
                 "enabled": false,
                 "scopes": [
-                    "[parameters('resourceId')]"
+                    "[concat(parameters('servers_prdprj2336_externalid'), '/databases/ehealth_apps_profile_forms')]"
                 ],
                 "evaluationFrequency": "PT1M",
                 "windowSize": "PT5M",
@@ -51,7 +51,7 @@
                 "targetResourceRegion": "australiaeast",
                 "actions": [
                     {
-                        "actionGroupId": "[parameters('actionGroupId')]",
+                        "actionGroupId": "[parameters('actiongroups_cubesys___monitoring_externalid')]",
                         "webHookProperties": {}
                     }
                 ]
