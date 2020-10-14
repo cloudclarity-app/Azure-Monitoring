@@ -18,6 +18,7 @@ NOTE: this script has been tested and validated with the following Azure resourc
 * App Services Plan
 * App Services
 * Application Gateway
+* Azure SQL Database
 
 **How to use**
 1. Download the artifacts
