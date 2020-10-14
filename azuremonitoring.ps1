@@ -198,47 +198,46 @@ ForEach ($azresource in $azresources)
             $alertdescription = $azmonitorcsv.'Alert Description'
         }
 
+        $metricname = $azmonitorcsv.Metric
+        $alertname = $azresourcename + '-' + $metricname
+#Remove / character
+        If ($alertname -like '*/*')
+        {
+            $alertname = $alertname -replace ('/','-')
+        }
+
 #Generate parameters files depending of the resource type
 #SQL Databases
         If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
         {
 #JSON template file
             $templatefilepath = "$psscriptroot\sqldb_template.json"
-            Write-Host $templatefilepath
 #JSON parameters file
             $parametersfilepath = "$psscriptroot\$fileslocation\parameters_sql.json"
-            Write-Host $parametersfilepath
-#Parameters
-            $paramfile.parameters.odataType.value = "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
-            $paramfile.parameters.criterionType.value = "StaticThresholdCriterion"
         }
         Else
 #Storage account, virtual machines, web apps
         {
 #JSON template file
             $templatefilepath = "$psscriptroot\template.json"
-            Write-Host $templatefilepath
 #JSON parameters file
             $parametersfilepath = "$psscriptroot\$fileslocation\parameters.json"
-            Write-Host $parametersfilepath
         }
 
 #Parameters
-        $paramfile = Get-Content $parametersfilepath -Raw | ConvertFrom-Json
-        $metricname = $azmonitorcsv.Metric
-        $alertname = $azresourcename + '-' + $metricname
-        $paramfile.parameters.alertName.value = $alertname
-        $paramfile.parameters.metricName.value = $metricname
-        $paramfile.parameters.metricNamespace.value = ($azmonitorcsv.'Resource Type').Split("/")[0]
-        $paramfile.parameters.resourceId.value = $azresourceid
-        $paramfile.parameters.threshold.value = $threshold
-        $paramfile.parameters.actionGroupId.value = $actiongroupid
-        $paramfile.parameters.timeAggregation.value = $azmonitorcsv.'Aggregation Time'
-        $paramfile.parameters.alertDescription.value = $alertdescription
-        $paramfile.parameters.operator.value = $azmonitorcsv.Operator
-        $paramfile.parameters.alertSeverity.value = [int]($azmonitorcsv.Severity)
-        $paramfile.parameters.evaluationFrequency.value = $azmonitorcsv.'Eval Frequency'
-        $paramfile.parameters.windowSize.value = $azmonitorcsv.'Window Size'
+            $paramfile = Get-Content $parametersfilepath -Raw | ConvertFrom-Json
+            $paramfile.parameters.alertName.value = $alertname
+            $paramfile.parameters.alertDescription.value = $alertdescription
+            $paramfile.parameters.metricName.value = $metricname
+            $paramfile.parameters.metricNamespace.value = ($azmonitorcsv.'Resource Type')
+            $paramfile.parameters.resourceId.value = $azresourceid
+            $paramfile.parameters.threshold.value = $threshold
+            $paramfile.parameters.actionGroupId.value = $actiongroupid
+            $paramfile.parameters.timeAggregation.value = $azmonitorcsv.'Aggregation Time'
+            $paramfile.parameters.operator.value = $azmonitorcsv.Operator
+            $paramfile.parameters.alertSeverity.value = [int]($azmonitorcsv.Severity)
+            $paramfile.parameters.evaluationFrequency.value = $azmonitorcsv.'Eval Frequency'
+            $paramfile.parameters.windowSize.value = $azmonitorcsv.'Window Size'
 
 #Update parameters file JSON
         $updatedjson = $paramfile | ConvertTo-Json
