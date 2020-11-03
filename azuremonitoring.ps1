@@ -6,10 +6,23 @@
     This script will automatically enable Azure monitoring based on CSV input defining which resources and metrics to use for monitoring, including metrics settings
     Threshold values defined in the CSV file define the default value for monitoring while the tagname identifies exception.
     When a resource with the tag name defined is identified, the threshold value defined for the monitoring will be set based on the tag value.
-    be enabled and ensuring the service is running.
+    By default, the monitoring scope is set to the subscription but it can be filtered by defining either a resource group, resource type or both.
+    An Azure monitoring action group must be created as a prerequisites (see https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups).
 
-.PARAMETER AzureMapsSharedKey
-    Specify the Azure Maps API shared key available under the Authentication blade of the resource in Azure.
+.PARAMETER rgazresources
+    Specify the Azure resource group where the resources to be monitoring are located; used only to limit the scope of execution
+
+.PARAMETER azrestype
+    Specify the Azure resource type to be monitoring are located; used only to limit the scope of execution
+
+.PARAMETER fileslocation
+    Specify the location of the input CSV file use to enable and set monitoring thresholds
+
+.PARAMETER rgactiongroup
+    Specify the Azure resource group where the Azure monitoring action group is located
+
+.PARAMETER actiongroupname
+    Specify the Azure action group to execute when monitoring threshold is fired
 
 .NOTES
     FileName:    azuremonitoring.ps1.ps1
