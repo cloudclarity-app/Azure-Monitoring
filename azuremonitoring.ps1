@@ -1,3 +1,28 @@
+<#
+.SYNOPSIS
+    Enable Azure monitoring capabilities on resources and metrics available for monitoring.
+
+.DESCRIPTION
+    This script will automatically enable Azure monitoring based on CSV input defining which resources and metrics to use for monitoring, including metrics settings
+    Threshold values defined in the CSV file define the default value for monitoring while the tagname identifies exception.
+    When a resource with the tag name defined is identified, the threshold value defined for the monitoring will be set based on the tag value.
+    be enabled and ensuring the service is running.
+
+.PARAMETER AzureMapsSharedKey
+    Specify the Azure Maps API shared key available under the Authentication blade of the resource in Azure.
+
+.NOTES
+    FileName:    azuremonitoring.ps1.ps1
+    Author:      Benoit HAMET - cubesys
+    Contact:     info@tagmanager.app
+    Created:     2020-10-01
+    Updated:     2020-10-12
+
+    Version history:
+    1.0.0 - (2020-10-01) - Script created
+    1.0.1 - (2020-10-12) - Fixing issue for Azure SQL Database monitoring; different version of template and schema
+#>
+
 #Script to set threshold values for monitoring components
 #region Parameters
 Param(
