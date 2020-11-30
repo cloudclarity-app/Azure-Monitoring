@@ -86,6 +86,7 @@
             "defaultValue": "Average",
             "allowedValues": [
                 "Average",
+                "Count",
                 "Minimum",
                 "Maximum",
                 "Total"

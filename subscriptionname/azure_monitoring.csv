@@ -1120,7 +1120,7 @@ Microsoft.Network/applicationGateways,ComputeUnits,Current Compute Units,Count,A
 Microsoft.Network/applicationGateways,CpuUtilization,CPU Utilization,Percent,Average,Current CPU utilization of the Application Gateway,,,80,GreaterThanOrEqual,PT1H,PT1H,Average,,1
 Microsoft.Network/applicationGateways,CurrentConnections,Current Connections,Count,Total,Count of current connections established with Application Gateway,,,,,,,,,
 Microsoft.Network/applicationGateways,EstimatedBilledCapacityUnits,Estimated Billed Capacity Units,Count,Average,Estimated capacity units that will be charged,,,,,,,,,
-Microsoft.Network/applicationGateways,FailedRequests,Failed Requests,Count,Total,Count of failed requests that Application Gateway has served,,,,,,,,,
+Microsoft.Network/applicationGateways,FailedRequests,Failed Requests,Count,Total,Count of failed requests that Application Gateway has served,,,1,GreaterThanOrEqual,PT5M,PT5M,Total,,1
 Microsoft.Network/applicationGateways,FixedBillableCapacityUnits,Fixed Billable Capacity Units,Count,Average,Minimum capacity units that will be charged,,,,,,,,,
 Microsoft.Network/applicationGateways,HealthyHostCount,Healthy Host Count,Count,Average,Number of healthy backend hosts,,,,,,,,,
 Microsoft.Network/applicationGateways,MatchedCount,Web Application Firewall Total Rule Distribution,Count,Total,Web Application Firewall Total Rule Distribution for the incoming traffic,,,,,,,,,
@@ -1129,7 +1129,7 @@ Microsoft.Network/applicationGateways,ResponseStatus,Response Status,Count,Total
 Microsoft.Network/applicationGateways,Throughput,Throughput,BytesPerSecond,Average,Number of bytes per second the Application Gateway has served,,,,,,,,,
 Microsoft.Network/applicationGateways,TlsProtocol,Client TLS Protocol,Count,Total,"The number of TLS and non-TLS requests initiated by the client that established connection with the Application Gateway. To view TLS protocol distribution, filter by the dimension TLS Protocol.",,,,,,,,,
 Microsoft.Network/applicationGateways,TotalRequests,Total Requests,Count,Total,Count of successful requests that Application Gateway has served,,,,,,,,,
-Microsoft.Network/applicationGateways,UnhealthyHostCount,Unhealthy Host Count,Count,Average,Number of unhealthy backend hosts,,,,,,,,,
+Microsoft.Network/applicationGateways,UnhealthyHostCount,Unhealthy Host Count,Count,Average,Number of unhealthy backend hosts,,,1,GreaterThan,PT1H,PT1H,Average,,1
 Microsoft.Network/azurefirewalls,ApplicationRuleHit,Application rules hit count,Count,Total,Number of times Application rules were hit,,,,,,,,,
 Microsoft.Network/azurefirewalls,DataProcessed,Data processed,Bytes,Total,Total amount of data processed by this firewall,,,,,,,,,
 Microsoft.Network/azurefirewalls,FirewallHealth,Firewall health state,Percent,Average,Indicates the overall health of this firewall,,,,,,,,,
@@ -1422,17 +1422,17 @@ Microsoft.Sql/servers/databases,active_queries,Active queries,Count,Total,Active
 Microsoft.Sql/servers/databases,allocated_data_storage,Data space allocated,Bytes,Average,Allocated data storage. Not applicable to data warehouses.,,,,,,,,,
 Microsoft.Sql/servers/databases,app_cpu_billed,App CPU billed,Count,Total,App CPU billed. Applies to serverless databases.,,,,,,,,,
 Microsoft.Sql/servers/databases,app_cpu_percent,App CPU percentage,Percent,Average,App CPU percentage. Applies to serverless databases.,,,,,,,,,
-Microsoft.Sql/servers/databases,app_memory_percent,App memory percentage,Percent,Average,App memory percentage. Applies to serverless databases.,,,90,GreaterThanOrEqual,PT1H,PT1H,Average,,1
+Microsoft.Sql/servers/databases,app_memory_percent,App memory percentage,Percent,Average,App memory percentage. Applies to serverless databases.,,,,,,,,,
 Microsoft.Sql/servers/databases,base_blob_size_bytes,Base blob storage size,Bytes,Maximum,Base blob storage size. Applies to Hyperscale databases.,,,,,,,,,
 Microsoft.Sql/servers/databases,blocked_by_firewall,Blocked by Firewall,Count,Total,Blocked by Firewall,,,,,,,,,
 Microsoft.Sql/servers/databases,cache_hit_percent,Cache hit percentage,Percent,Maximum,Cache hit percentage. Applies only to data warehouses.,,,,,,,,,
 Microsoft.Sql/servers/databases,cache_used_percent,Cache used percentage,Percent,Maximum,Cache used percentage. Applies only to data warehouses.,,,,,,,,,
-Microsoft.Sql/servers/databases,connection_failed,Failed Connections,Count,Total,Failed Connections,,,,,,,,,
+Microsoft.Sql/servers/databases,connection_failed,Failed Connections,Count,Total,Failed Connections,,,1,GreaterThanOrEqual,PT1H,PT1H,Total,,1
 Microsoft.Sql/servers/databases,connection_successful,Successful Connections,Count,Total,Successful Connections,,,,,,,,,
 Microsoft.Sql/servers/databases,cpu_limit,CPU limit,Count,Average,CPU limit. Applies to vCore-based databases.,,,,,,,,,
-Microsoft.Sql/servers/databases,cpu_percent,CPU percentage,Percent,Average,CPU percentage,Yes,,80,GreaterThanOrEqual,PT1H,PT1H,Average,,1
+Microsoft.Sql/servers/databases,cpu_percent,CPU percentage,Percent,Average,CPU percentage,,,80,GreaterThanOrEqual,PT1H,PT1H,Average,,1
 Microsoft.Sql/servers/databases,cpu_used,CPU used,Count,Average,CPU used. Applies to vCore-based databases.,,,3,GreaterThanOrEqual,PT1H,PT1H,Average,,2
-Microsoft.Sql/servers/databases,deadlock,Deadlocks,Count,Total,Deadlocks. Not applicable to data warehouses.,,,,,,,,,
+Microsoft.Sql/servers/databases,deadlock,Deadlocks,Count,Total,Deadlocks. Not applicable to data warehouses.,,,1,GreaterThanOrEqual,PT1H,PT1H,Total,,1
 Microsoft.Sql/servers/databases,diff_backup_size_bytes,Differential backup storage size,Bytes,Maximum,Cumulative differential backup storage size. Applies to vCore-based databases. Not applicable to Hyperscale databases.,,,,,,,,,
 Microsoft.Sql/servers/databases,dtu_consumption_percent,DTU percentage,Percent,Average,DTU Percentage. Applies to DTU-based databases.,,,80,GreaterThanOrEqual,PT1H,PT1H,Average,,1
 Microsoft.Sql/servers/databases,dtu_limit,DTU Limit,Count,Average,DTU Limit. Applies to DTU-based databases.,,,,,,,,,
@@ -1500,15 +1500,15 @@ Microsoft.Sql/servers/elasticPools,tempdb_log_size,Tempdb Log File Size Kilobyte
 Microsoft.Sql/servers/elasticPools,tempdb_log_used_percent,Tempdb Percent Log Used,Percent,Maximum,Tempdb Percent Log Used,,,,,,,,,
 Microsoft.Sql/servers/elasticPools,workers_percent,Workers percentage,Percent,Average,Workers percentage,,,,,,,,,
 Microsoft.Sql/servers/elasticPools,xtp_storage_percent,In-Memory OLTP storage percent,Percent,Average,In-Memory OLTP storage percent,,,,,,,,,
-Microsoft.Storage/storageAccounts,Availability,Availability,Percent,Average,"The percentage of availability for the storage service or the specified API operation. Availability is calculated by taking the TotalBillableRequests value and dividing it by the number of applicable requests, including those that produced unexpected errors. All unexpected errors result in reduced availability for the storage service or the specified API operation.",Yes,stravailable,100,LessThan,PT1H,PT1H,Average,,1
+Microsoft.Storage/storageAccounts,Availability,Availability,Percent,Average,"The percentage of availability for the storage service or the specified API operation. Availability is calculated by taking the TotalBillableRequests value and dividing it by the number of applicable requests, including those that produced unexpected errors. All unexpected errors result in reduced availability for the storage service or the specified API operation.",,,100,LessThan,PT1H,PT1H,Average,,1
 Microsoft.Storage/storageAccounts,Egress,Egress,Bytes,Total,"The amount of egress data. This number includes egress to external client from Azure Storage as well as egress within Azure. As a result, this number does not reflect billable egress.",,,100,GreaterThanOrEqual,PT1H,PT1H,Total,,3
 Microsoft.Storage/storageAccounts,Ingress,Ingress,Bytes,Total,"The amount of ingress data, in bytes. This number includes ingress from an external client into Azure Storage as well as ingress within Azure.",,,30,GreaterThanOrEqual,PT1H,PT1H,Total,,2
 Microsoft.Storage/storageAccounts,SuccessE2ELatency,Success E2E Latency,Milliseconds,Average,"The average end-to-end latency of successful requests made to a storage service or the specified API operation, in milliseconds. This value includes the required processing time within Azure Storage to read the request, send the response, and receive acknowledgment of the response.",,,25,GreaterThanOrEqual,PT1H,PT1H,Average,,1
 Microsoft.Storage/storageAccounts,SuccessServerLatency,Success Server Latency,Milliseconds,Average,The average time used to process a successful request by Azure Storage. This value does not include the network latency specified in SuccessE2ELatency.,,,35,GreaterThanOrEqual,PT1H,PT1H,Average,,3
 Microsoft.Storage/storageAccounts,Transactions,Transactions,Count,Total,"The number of requests made to a storage service or the specified API operation. This number includes successful and failed requests, as well as requests which produced errors. Use ResponseType dimension for the number of different type of response.",,,100,GreaterThanOrEqual,PT1H,PT1H,Total,,1
-Microsoft.Storage/storageAccounts,UsedCapacity,Used capacity,Bytes,Average,"The amount of storage used by the storage account. For standard storage accounts, it's the sum of capacity used by blob, table, file, and queue. For premium storage accounts and Blob storage accounts, it is the same as BlobCapacity or FileCapacity.",Yes,,2000,GreaterThanOrEqual,PT1H,PT1H,Average,,1
-Microsoft.Storage/storageAccounts/blobServices,Availability,Availability,Percent,Average,"The percentage of availability for the storage service or the specified API operation. Availability is calculated by taking the TotalBillableRequests value and dividing it by the number of applicable requests, including those that produced unexpected errors. All unexpected errors result in reduced availability for the storage service or the specified API operation.",Yes,strblobavailable,100,LessThan,PT1H,PT1H,Average,,1
-Microsoft.Storage/storageAccounts/blobServices,BlobCapacity,Blob Capacity,Bytes,Average,The amount of storage used by the storage account’s Blob service in bytes.,Yes,strblobspace,20000,GreaterThanOrEqual,PT1H,PT1H,Average,,1
+Microsoft.Storage/storageAccounts,UsedCapacity,Used capacity,Bytes,Average,"The amount of storage used by the storage account. For standard storage accounts, it's the sum of capacity used by blob, table, file, and queue. For premium storage accounts and Blob storage accounts, it is the same as BlobCapacity or FileCapacity.",,,2000,GreaterThanOrEqual,PT1H,PT1H,Average,,1
+Microsoft.Storage/storageAccounts/blobServices,Availability,Availability,Percent,Average,"The percentage of availability for the storage service or the specified API operation. Availability is calculated by taking the TotalBillableRequests value and dividing it by the number of applicable requests, including those that produced unexpected errors. All unexpected errors result in reduced availability for the storage service or the specified API operation.",,,100,LessThan,PT1H,PT1H,Average,,1
+Microsoft.Storage/storageAccounts/blobServices,BlobCapacity,Blob Capacity,Bytes,Average,The amount of storage used by the storage account’s Blob service in bytes.,,,,GreaterThanOrEqual,PT1H,PT1H,Average,,1
 Microsoft.Storage/storageAccounts/blobServices,BlobCount,Blob Count,Count,Average,The number of blob objects stored in the storage account.,,,,,,,,,
 Microsoft.Storage/storageAccounts/blobServices,BlobProvisionedSize,Blob Provisioned Size,Bytes,Average,The amount of storage provisioned in the storage account’s Blob service in bytes.,,,,,,,,,
 Microsoft.Storage/storageAccounts/blobServices,ContainerCount,Blob Container Count,Count,Average,The number of containers in the storage account.,,,,,,,,,
@@ -1518,7 +1518,7 @@ Microsoft.Storage/storageAccounts/blobServices,Ingress,Ingress,Bytes,Total,"The 
 Microsoft.Storage/storageAccounts/blobServices,SuccessE2ELatency,Success E2E Latency,Milliseconds,Average,"The average end-to-end latency of successful requests made to a storage service or the specified API operation, in milliseconds. This value includes the required processing time within Azure Storage to read the request, send the response, and receive acknowledgment of the response.",,,,,,,,,
 Microsoft.Storage/storageAccounts/blobServices,SuccessServerLatency,Success Server Latency,Milliseconds,Average,The average time used to process a successful request by Azure Storage. This value does not include the network latency specified in SuccessE2ELatency.,,,,,,,,,
 Microsoft.Storage/storageAccounts/blobServices,Transactions,Transactions,Count,Total,"The number of requests made to a storage service or the specified API operation. This number includes successful and failed requests, as well as requests which produced errors. Use ResponseType dimension for the number of different type of response.",,,,,,,,,
-Microsoft.Storage/storageAccounts/fileServices,Availability,Availability,Percent,Average,"The percentage of availability for the storage service or the specified API operation. Availability is calculated by taking the TotalBillableRequests value and dividing it by the number of applicable requests, including those that produced unexpected errors. All unexpected errors result in reduced availability for the storage service or the specified API operation.",Yes,strfileavailable,100,LessThan,PT1H,PT1H,Average,,1
+Microsoft.Storage/storageAccounts/fileServices,Availability,Availability,Percent,Average,"The percentage of availability for the storage service or the specified API operation. Availability is calculated by taking the TotalBillableRequests value and dividing it by the number of applicable requests, including those that produced unexpected errors. All unexpected errors result in reduced availability for the storage service or the specified API operation.",,,100,LessThan,PT1H,PT1H,Average,,1
 Microsoft.Storage/storageAccounts/fileServices,Egress,Egress,Bytes,Total,"The amount of egress data. This number includes egress to external client from Azure Storage as well as egress within Azure. As a result, this number does not reflect billable egress.",,,,,,,,,
 Microsoft.Storage/storageAccounts/fileServices,FileCapacity,File Capacity,Bytes,Average,The amount of File storage used by the storage account.,,,,,,,,,
 Microsoft.Storage/storageAccounts/fileServices,FileCount,File Count,Count,Average,The number of files in the storage account.,,,,,,,,,
@@ -1691,65 +1691,65 @@ Microsoft.Web/serverfarms,TcpLastAck,TCP Last Ack,Count,Average,TCP Last Ack,,,,
 Microsoft.Web/serverfarms,TcpSynReceived,TCP Syn Received,Count,Average,TCP Syn Received,,,,,,,,,
 Microsoft.Web/serverfarms,TcpSynSent,TCP Syn Sent,Count,Average,TCP Syn Sent,,,,,,,,,
 Microsoft.Web/serverfarms,TcpTimeWait,TCP Time Wait,Count,Average,TCP Time Wait,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),AppConnections,Connections,Count,Average,Connections,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),AverageMemoryWorkingSet,Average memory working set,Bytes,Average,Average memory working set,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),AverageResponseTime,Average Response Time (deprecated),Seconds,Average,Average Response Time,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),BytesReceived,Data In,Bytes,Total,Data In,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),BytesSent,Data Out,Bytes,Total,Data Out,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),CpuTime,CPU Time,Seconds,Total,CPU Time,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),CurrentAssemblies,Current Assemblies,Count,Average,Current Assemblies,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),FileSystemUsage,File System Usage,Bytes,Average,File System Usage,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Gen0Collections,Gen 0 Garbage Collections,Count,Total,Gen 0 Garbage Collections,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Gen1Collections,Gen 1 Garbage Collections,Count,Total,Gen 1 Garbage Collections,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Gen2Collections,Gen 2 Garbage Collections,Count,Total,Gen 2 Garbage Collections,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Handles,Handle Count,Count,Average,Handle Count,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),HealthCheckStatus,Health check status,Count,Average,Health check status,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Http101,Http 101,Count,Total,Http 101,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Http2xx,Http 2xx,Count,Total,Http 2xx,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Http3xx,Count,Total,Http 3xx,Instance,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Http401,Http 401,Count,Total,Http 401,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
-Microsoft.Web/sites.(excluding.functions),Http403,Http 403,Count,Total,Http 403,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
-Microsoft.Web/sites.(excluding.functions),Http404,Http 404,Count,Total,Http 404,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Http406,Http 406,Count,Total,Http 406,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Http4xx,Http 4xx,Count,Total,Http 4xx,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Http5xx,Http Server Errors,Count,Total,Http Server Errors,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
-Microsoft.Web/sites.(excluding.functions),HttpResponseTime,Response Time,Seconds,Average,Response Time,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),IoOtherBytesPerSecond,IO Other Bytes Per Second,BytesPerSecond,Total,IO Other Bytes Per Second,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),IoOtherOperationsPerSecond,IO Other Operations Per Second,BytesPerSecond,Total,IO Other Operations Per Second,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),IoReadBytesPerSecond,IO Read Bytes Per Second,BytesPerSecond,Total,IO Read Bytes Per Second,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),IoReadOperationsPerSecond,IO Read Operations Per Second,BytesPerSecond,Total,IO Read Operations Per Second,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),IoWriteBytesPerSecond,IO Write Bytes Per Second,BytesPerSecond,Total,IO Write Bytes Per Second,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),IoWriteOperationsPerSecond,IO Write Operations Per Second,BytesPerSecond,Total,IO Write Operations Per Second,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),MemoryWorkingSet,Memory working set,Bytes,Average,Memory working set,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),PrivateBytes,Private Bytes,Bytes,Average,Private Bytes,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Requests,Requests,Count,Total,Requests,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),RequestsInApplicationQueue,Requests In Application Queue,Count,Average,Requests In Application Queue,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),Threads,Thread Count,Count,Average,Thread Count,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),TotalAppDomains,Total App Domains,Count,Average,Total App Domains,,,,,,,,,
-Microsoft.Web/sites.(excluding.functions),TotalAppDomainsUnloaded,Total App Domains Unloaded,Count,Average,Total App Domains Unloaded,,,,,,,,,
-Microsoft.Web/sites.(functions),AverageMemoryWorkingSet,Average memory working set,Bytes,Average,Average memory working set,,,,,,,,,
-Microsoft.Web/sites.(functions),BytesReceived,Data In,Bytes,Total,Data In,,,,,,,,,
-Microsoft.Web/sites.(functions),BytesSent,Data Out,Bytes,Total,Data Out,,,,,,,,,
-Microsoft.Web/sites.(functions),CurrentAssemblies,Current Assemblies,Count,Average,Current Assemblies,,,,,,,,,
-Microsoft.Web/sites.(functions),FileSystemUsage,File System Usage,Bytes,Average,File System Usage,,,,,,,,,
-Microsoft.Web/sites.(functions),FunctionExecutionCount,Function Execution Count,Count,Total,Function Execution Count,,,,,,,,,
-Microsoft.Web/sites.(functions),FunctionExecutionUnits,Function Execution Units,Count,Total,Function Execution Units,,,,,,,,,
-Microsoft.Web/sites.(functions),Gen0Collections,Gen 0 Garbage Collections,Count,Total,Gen 0 Garbage Collections,,,,,,,,,
-Microsoft.Web/sites.(functions),Gen1Collections,Gen 1 Garbage Collections,Count,Total,Gen 1 Garbage Collections,,,,,,,,,
-Microsoft.Web/sites.(functions),Gen2Collections,Gen 2 Garbage Collections,Count,Total,Gen 2 Garbage Collections,,,,,,,,,
-Microsoft.Web/sites.(functions),HealthCheckStatus,Health check status,Count,Average,Health check status,,,,,,,,,
-Microsoft.Web/sites.(functions),Http5xx,Http Server Errors,Count,Total,Http Server Errors,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
-Microsoft.Web/sites.(functions),IoOtherBytesPerSecond,IO Other Bytes Per Second,BytesPerSecond,Total,IO Other Bytes Per Second,,,,,,,,,
-Microsoft.Web/sites.(functions),IoOtherOperationsPerSecond,IO Other Operations Per Second,BytesPerSecond,Total,IO Other Operations Per Second,,,,,,,,,
-Microsoft.Web/sites.(functions),IoReadBytesPerSecond,IO Read Bytes Per Second,BytesPerSecond,Total,IO Read Bytes Per Second,,,,,,,,,
-Microsoft.Web/sites.(functions),IoReadOperationsPerSecond,IO Read Operations Per Second,BytesPerSecond,Total,IO Read Operations Per Second,,,,,,,,,
-Microsoft.Web/sites.(functions),IoWriteBytesPerSecond,IO Write Bytes Per Second,BytesPerSecond,Total,IO Write Bytes Per Second,,,,,,,,,
-Microsoft.Web/sites.(functions),IoWriteOperationsPerSecond,IO Write Operations Per Second,BytesPerSecond,Total,IO Write Operations Per Second,,,,,,,,,
-Microsoft.Web/sites.(functions),MemoryWorkingSet,Memory working set,Bytes,Average,Memory working set,,,,,,,,,
-Microsoft.Web/sites.(functions),PrivateBytes,Private Bytes,Bytes,Average,Private Bytes,,,,,,,,,
-Microsoft.Web/sites.(functions),RequestsInApplicationQueue,Requests In Application Queue,Count,Average,Requests In Application Queue,,,,,,,,,
-Microsoft.Web/sites.(functions),TotalAppDomains,Total App Domains,Count,Average,Total App Domains,,,,,,,,,
-Microsoft.Web/sites.(functions),TotalAppDomainsUnloaded,Total App Domains Unloaded,Count,Average,Total App Domains Unloaded,,,,,,,,,
+Microsoft.Web/sites,AppConnections,Connections (excluding.functions),Count,Average,Connections,,,,,,,,,
+Microsoft.Web/sites,AverageMemoryWorkingSet,Average memory working set (excluding.functions),Bytes,Average,Average memory working set,,,,,,,,,
+Microsoft.Web/sites,AverageResponseTime,Average Response Time (deprecated) (excluding.functions),Seconds,Average,Average Response Time,,,,,,,,,
+Microsoft.Web/sites,BytesReceived,Data In (excluding.functions),Bytes,Total,Data In,,,,,,,,,
+Microsoft.Web/sites,BytesSent,Data Out (excluding.functions),Bytes,Total,Data Out,,,,,,,,,
+Microsoft.Web/sites,CpuTime,CPU Time (excluding.functions),Seconds,Total,CPU Time,,,,,,,,,
+Microsoft.Web/sites,CurrentAssemblies,Current Assemblies (excluding.functions),Count,Average,Current Assemblies,,,,,,,,,
+Microsoft.Web/sites,FileSystemUsage,File System Usage (excluding.functions),Bytes,Average,File System Usage,,,,,,,,,
+Microsoft.Web/sites,Gen0Collections,Gen 0 Garbage Collections (excluding.functions),Count,Total,Gen 0 Garbage Collections,,,,,,,,,
+Microsoft.Web/sites,Gen1Collections,Gen 1 Garbage Collections (excluding.functions),Count,Total,Gen 1 Garbage Collections,,,,,,,,,
+Microsoft.Web/sites,Gen2Collections,Gen 2 Garbage Collections (excluding.functions),Count,Total,Gen 2 Garbage Collections,,,,,,,,,
+Microsoft.Web/sites,Handles,Handle Count (excluding.functions),Count,Average,Handle Count,,,,,,,,,
+Microsoft.Web/sites,HealthCheckStatus,Health check status (excluding.functions),Count,Average,Health check status,,,,,,,,,
+Microsoft.Web/sites,Http101,Http 101 (excluding.functions),Count,Total,Http 101,,,,,,,,,
+Microsoft.Web/sites,Http2xx,Http 2xx (excluding.functions),Count,Total,Http 2xx,,,,,,,,,
+Microsoft.Web/sites,Http3xx,Count (excluding.functions),Total,Http 3xx,Instance,,,,,,,,,
+Microsoft.Web/sites,Http401,Http 401 (excluding.functions),Count,Total,Http 401,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
+Microsoft.Web/sites,Http403,Http 403 (excluding.functions),Count,Total,Http 403,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
+Microsoft.Web/sites,Http404,Http 404 (excluding.functions),Count,Total,Http 404,,,,,,,,,
+Microsoft.Web/sites,Http406,Http 406 (excluding.functions),Count,Total,Http 406,,,,,,,,,
+Microsoft.Web/sites,Http4xx,Http 4xx (excluding.functions),Count,Total,Http 4xx,,,,,,,,,
+Microsoft.Web/sites,Http5xx,Http Server Errors (excluding.functions),Count,Total,Http Server Errors,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
+Microsoft.Web/sites,HttpResponseTime,Response Time (excluding.functions),Seconds,Average,Response Time,,,,,,,,,
+Microsoft.Web/sites,IoOtherBytesPerSecond,IO Other Bytes Per Second (excluding.functions),BytesPerSecond,Total,IO Other Bytes Per Second,,,,,,,,,
+Microsoft.Web/sites,IoOtherOperationsPerSecond,IO Other Operations Per Second (excluding.functions),BytesPerSecond,Total,IO Other Operations Per Second,,,,,,,,,
+Microsoft.Web/sites,IoReadBytesPerSecond,IO Read Bytes Per Second (excluding.functions),BytesPerSecond,Total,IO Read Bytes Per Second,,,,,,,,,
+Microsoft.Web/sites,IoReadOperationsPerSecond,IO Read Operations Per Second (excluding.functions),BytesPerSecond,Total,IO Read Operations Per Second,,,,,,,,,
+Microsoft.Web/sites,IoWriteBytesPerSecond,IO Write Bytes Per Second (excluding.functions),BytesPerSecond,Total,IO Write Bytes Per Second,,,,,,,,,
+Microsoft.Web/sites,IoWriteOperationsPerSecond,IO Write Operations Per Second (excluding.functions),BytesPerSecond,Total,IO Write Operations Per Second,,,,,,,,,
+Microsoft.Web/sites,MemoryWorkingSet,Memory working set (excluding.functions),Bytes,Average,Memory working set,,,,,,,,,
+Microsoft.Web/sites,PrivateBytes,Private Bytes (excluding.functions),Bytes,Average,Private Bytes,,,,,,,,,
+Microsoft.Web/sites,Requests,Requests (excluding.functions),Count,Total,Requests,,,,,,,,,
+Microsoft.Web/sites,RequestsInApplicationQueue,Requests In Application Queue (excluding.functions),Count,Average,Requests In Application Queue,,,,,,,,,
+Microsoft.Web/sites,Threads,Thread Count (excluding.functions),Count,Average,Thread Count,,,,,,,,,
+Microsoft.Web/sites,TotalAppDomains,Total App Domains (excluding.functions),Count,Average,Total App Domains,,,,,,,,,
+Microsoft.Web/sites,TotalAppDomainsUnloaded,Total App Domains Unloaded (excluding.functions),Count,Average,Total App Domains Unloaded,,,,,,,,,
+Microsoft.Web/sites,AverageMemoryWorkingSet,Average memory working set (functions),Bytes,Average,Average memory working set,,,,,,,,,
+Microsoft.Web/sites,BytesReceived,Data In (functions),Bytes,Total,Data In,,,,,,,,,
+Microsoft.Web/sites,BytesSent,Data Out (functions),Bytes,Total,Data Out,,,,,,,,,
+Microsoft.Web/sites,CurrentAssemblies,Current Assemblies (functions),Count,Average,Current Assemblies,,,,,,,,,
+Microsoft.Web/sites,FileSystemUsage,File System Usage (functions),Bytes,Average,File System Usage,,,,,,,,,
+Microsoft.Web/sites,FunctionExecutionCount,Function Execution Count (functions),Count,Total,Function Execution Count,,,,,,,,,
+Microsoft.Web/sites,FunctionExecutionUnits,Function Execution Units (functions),Count,Total,Function Execution Units,,,,,,,,,
+Microsoft.Web/sites,Gen0Collections,Gen 0 Garbage Collections (functions),Count,Total,Gen 0 Garbage Collections,,,,,,,,,
+Microsoft.Web/sites,Gen1Collections,Gen 1 Garbage Collections (functions),Count,Total,Gen 1 Garbage Collections,,,,,,,,,
+Microsoft.Web/sites,Gen2Collections,Gen 2 Garbage Collections (functions),Count,Total,Gen 2 Garbage Collections,,,,,,,,,
+Microsoft.Web/sites,HealthCheckStatus,Health check status (functions),Count,Average,Health check status,,,,,,,,,
+Microsoft.Web/sites,Http5xx,Http Server Errors (functions),Count,Total,Http Server Errors,,,10,GreaterThanOrEqual,PT1H,PT1H,Count,,1
+Microsoft.Web/sites,IoOtherBytesPerSecond,IO Other Bytes Per Second (functions),BytesPerSecond,Total,IO Other Bytes Per Second,,,,,,,,,
+Microsoft.Web/sites,IoOtherOperationsPerSecond,IO Other Operations Per Second (functions),BytesPerSecond,Total,IO Other Operations Per Second,,,,,,,,,
+Microsoft.Web/sites,IoReadBytesPerSecond,IO Read Bytes Per Second (functions),BytesPerSecond,Total,IO Read Bytes Per Second,,,,,,,,,
+Microsoft.Web/sites,IoReadOperationsPerSecond,IO Read Operations Per Second (functions),BytesPerSecond,Total,IO Read Operations Per Second,,,,,,,,,
+Microsoft.Web/sites,IoWriteBytesPerSecond,IO Write Bytes Per Second (functions),BytesPerSecond,Total,IO Write Bytes Per Second,,,,,,,,,
+Microsoft.Web/sites,IoWriteOperationsPerSecond,IO Write Operations Per Second (functions),BytesPerSecond,Total,IO Write Operations Per Second,,,,,,,,,
+Microsoft.Web/sites,MemoryWorkingSet,Memory working set (functions),Bytes,Average,Memory working set,,,,,,,,,
+Microsoft.Web/sites,PrivateBytes,Private Bytes (functions),Bytes,Average,Private Bytes,,,,,,,,,
+Microsoft.Web/sites,RequestsInApplicationQueue,Requests In Application Queue (functions),Count,Average,Requests In Application Queue,,,,,,,,,
+Microsoft.Web/sites,TotalAppDomains,Total App Domains (functions),Count,Average,Total App Domains,,,,,,,,,
+Microsoft.Web/sites,TotalAppDomainsUnloaded,Total App Domains Unloaded (functions),Count,Average,Total App Domains Unloaded,,,,,,,,,
 Microsoft.Web/sites/slots,AppConnections,Connections,Count,Average,Connections,,,,,,,,,
 Microsoft.Web/sites/slots,AverageMemoryWorkingSet,Average memory working set,Bytes,Average,Average memory working set,,,,,,,,,
 Microsoft.Web/sites/slots,AverageResponseTime,Average Response Time,Seconds,Average,Average Response Time,,,,,,,,,

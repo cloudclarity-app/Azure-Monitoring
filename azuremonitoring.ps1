@@ -35,6 +35,7 @@
     1.0.0 - (2020-10-01) - Script created
     1.0.1 - (2020-10-12) - Fixing issue for Azure SQL Database monitoring; different version of template and schema
     1.0.2 - (2020-11-27) - Code signing
+    1.0.3 - (2020-11-30) - Rename template and parameters files matching the schema version instead; update monitoring CSV to pre populate additional values for metrics thresholds
 #>
 
 #Script to set threshold values for monitoring components
@@ -250,17 +251,17 @@ ForEach ($azresource in $azresources)
         If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
         {
 #JSON template file
-            $templatefilepath = "$psscriptroot\sqldb_template.json"
+            $templatefilepath = "$psscriptroot\parameters_2015-01-01.json"
 #JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\parameters_sql.json"
+            $parametersfilepath = "$psscriptroot\$fileslocation\template_2015-01-01.json"
         }
         Else
 #Storage account, virtual machines, web apps
         {
 #JSON template file
-            $templatefilepath = "$psscriptroot\template.json"
+            $templatefilepath = "$psscriptroot\parameters_2019-04-01.json"
 #JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\parameters.json"
+            $parametersfilepath = "$psscriptroot\$fileslocation\template_2019-04-01.json"
         }
 
 #Parameters
@@ -311,8 +312,8 @@ ForEach ($azresource in $azresources)
 # SIG # Begin signature block
 # MIIThQYJKoZIhvcNAQcCoIITdjCCE3ICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUTka2zgAglE8ohfKU88/ppM7x
-# faCgghC8MIIFOjCCBCKgAwIBAgIRAMAkGCkl6rgosyKOhFWhX14wDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUWGS62Z4c+837qE3bUaJe0TQ9
+# fUygghC8MIIFOjCCBCKgAwIBAgIRAMAkGCkl6rgosyKOhFWhX14wDQYJKoZIhvcN
 # AQELBQAwfDELMAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3Rl
 # cjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSQw
 # IgYDVQQDExtTZWN0aWdvIFJTQSBDb2RlIFNpZ25pbmcgQ0EwHhcNMjAxMTIwMDAw
@@ -407,11 +408,11 @@ ForEach ($azresource in $azresources)
 # b2RlIFNpZ25pbmcgQ0ECEQDAJBgpJeq4KLMijoRVoV9eMAkGBSsOAwIaBQCgeDAY
 # BgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3
 # AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEW
-# BBRSQOOxW+V6FOb4zwgL/4VF09xIqzANBgkqhkiG9w0BAQEFAASCAQBT7R5YpGFA
-# JOVWp6FWdFRdgXDqqQ3V09oUvik+d1re2wyBlOqYfNvDkM6Od7O/qiM+H+oPKgv6
-# O0UbxOtJSXI7r+W8HOfSIdaiEhb2xlFzQJSXOqSeUG5T26Np1SsUXlV6b0AKoPFQ
-# NnJmt4RITLut8R0Z/yx/1LBRJBl/k1q2hY8k/FCOk5ufLc/dSIQU3PfncUczv17p
-# c3Fh5oDtiNBALDlzgrP21gZDD1NTlGuN/N7F9EOxp38jpFzPfenKUIM5eAoyMiS/
-# bQetviem11RZtJ8Pstl5T6AQtkS4oTk5tAPoB37W35oZCzocO7WEdJCkDamVNN1Q
-# RL0A0Hlb/cHC
+# BBSN43/0pwd7F6hk4V1AcCdB/q3zZTANBgkqhkiG9w0BAQEFAASCAQBYwInJAImy
+# nFydyaPyn6bA/CbsrS+4QeXTTnDHO6m3RsFCw/BiBkfs31457l+H9T6/3xRRwlSt
+# O+Pha0zlR++AagHCe+g/38cZtjMpsFLxLvlYsIwJ/83XH3sByC89KXKlIFJ2JOO0
+# ZGddWcjPSG5TrKjwGcwuQCud73+RQ7WBvXio76fuHcd6PN7YLxCzeqm62IOPFkU9
+# nLqrB3/ju9OKu4aVN2zeyx93Ul56lgk8hKI8QtYN3uY4PYElehLuvxDgfhXto1St
+# BEn/AIMQ9OD4k5yayOTNcG1jtiU094avZyOCt2Feb+siaqwVp04BrDp45JF1FVxb
+# u6OSFPqPrumg
 # SIG # End signature block
