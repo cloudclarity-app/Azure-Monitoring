@@ -251,17 +251,17 @@ ForEach ($azresource in $azresources)
         If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
         {
 #JSON template file
-            $templatefilepath = "$psscriptroot\parameters_2015-01-01.json"
+            $templatefilepath = "$psscriptroot\template_2015-01-01.json"
 #JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\template_2015-01-01.json"
+            $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2015-01-01.json"
         }
         Else
 #Storage account, virtual machines, web apps
         {
 #JSON template file
-            $templatefilepath = "$psscriptroot\parameters_2019-04-01.json"
+            $templatefilepath = "$psscriptroot\template_2019-04-01.json"
 #JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\template_2019-04-01.json"
+            $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2019-04-01.json"
         }
 
 #Parameters
