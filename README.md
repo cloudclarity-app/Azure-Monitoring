@@ -10,7 +10,7 @@ You can restrict the scope by defining either a specific resource group, using t
 The script must be located at the root while the CSV file must be located within a subfolder named like your Azure subscription.
 * The 2 JSON files co-located with the script are the metric templates. Different templates are used depending of the resource type.
 * The 2 JSON files co-located with the CSV file - in the subfolder - are the parameters files to use with the corresponding templates.
-* The "build/exe.win-amd64-3.10/" folder must be located in the same folder as the input CSV file. The UpdateMetricsCSV.exe must remain inside this nested      folder along with its contents in the same structure.
+* UpdateMetricsCSV.py co-located with the CSV file - in the subfolder - to successfully update the azure_monitoring.csv.
 
 
 NOTE: this script has been tested and validated with the following Azure resource types - if you are experiencing an issue with another resource type please log an issue
@@ -25,7 +25,8 @@ NOTE: this script has been tested and validated with the following Azure resourc
 1. Download the artifacts
 2. Rename the *subscriptionname* folder with the name of your Azure subscription
 3. In Azure, create at least one action group (see https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups)
-4. (Optional) Run UpdateMetricsCSV.exe, found inside the "build/exe.win-amd64-3.10/" folder to use the most up to date list of supported metrics in the azure_monitoring.csv. Note: the build folder structure and contents must remain unchanged in order to be successful.
+4. (Optional) Run UpdateMetricsCSV.py to gather all new supported metrics and removed unsupported metrics from azure_monitoring.csv. It will keep any 
+   current settings for metrics that are still supported at the time of updating. For this python script to run successfully, it requires Python 3 and the following external libraries: Requests, Numpy, Pandas and BeautifulSoup. Links to these external libraries are listed at the head of the python file.
 5. Edit the CSV file to define which the following paramters:
    - 5.1 Enable for monitoring: Set to Yes for any metric you wish to monitor
    - 5.2 Tag Name: Tag's are used for exceptions, if your resource that you have enabled for monitoring needs an alternate threshold from the default in the csv file you set the tag here 
