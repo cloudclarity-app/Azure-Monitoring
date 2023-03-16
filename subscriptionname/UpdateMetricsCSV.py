@@ -1,7 +1,7 @@
 # Author: David COOK - cubesys
 # Created: 25th Jan 2023 (25/1/2023)
-# Script Last Updated: 2nd Mar 2023 (2/3/2023)
-# Supprorted Metrics Page Last Updated At Time Of Script Update: 1st Mar 2023 (1/3/2023)
+# Script Last Updated: 16th Mar 2023 (16/3/2023)
+# Supprorted Metrics Page Last Updated At Time Of Script Update: 13th Mar 2023 (13/3/2023)
 
 # Requirements:
 # - Requests library (https://pypi.org/project/requests/)
@@ -17,7 +17,7 @@
 # along with organising and structuring the data. From here, the script will start building the data in the required
 # structure for the input csv, while matching the previous metric settings to those that will be present in the updated csv.
 # Additional checks and removal of html relating to hyperlinks also occurs at this stage. Finally, the structured metrics
-# data is written to subscriptionname/azure_monitoring.csv.
+# data is written to ./azure_monitoring.csv.
 
 import requests
 import numpy
@@ -34,6 +34,11 @@ inputFile = pandas.read_csv("./azure_monitoring.csv", encoding='cp1252')
 #Initialises current settings and current settings count variables to store any currently set parameters for each metric
 currentSettings = None
 currentSettingsCount = 0
+
+#Initialises alertNameColumnPresent variable to check if the azure_monitoring.csv is aligned with the newer input csv format
+alertNameColumnPresent = False
+csvColumnIssue = False
+additionalRows = 0
 
 #Removes NaN inputs from the inputs of the original metrics file
 def NANtoEmpty(setting):
@@ -52,12 +57,26 @@ def ExtractCurrentSettings():
     global currentSettings
     global currentSettingsCount
     global ResTypeWithSettings
+    global alertNameColumnPresent
+    global csvColumnIssue
+    global additionalRows
+
+    lastColumnIndex = 14
+
+    if("Alert Name" in inputFile.columns):
+        alertNameColumnPresent = True
+        lastColumnIndex = 15
+
+        if(not inputFile.columns[13] == "Alert Name"):
+            csvColumnIssue = True
+            print("Error: Misplaced Alert Name column. Must be the 13th column (3rd last) between the Aggregation Time and Alert Description columns")
+            return
 
     #Iterates through the original file to count how many metrics have settings present
     for index, row in inputFile.iterrows():
         settingsPresent = False
 
-        for setting in range(6, 14):
+        for setting in range(6, lastColumnIndex):
             if(not pandas.isna(row[setting]) and settingsPresent != True):
                 currentSettingsCount += 1
                 settingsPresent = True
@@ -66,14 +85,24 @@ def ExtractCurrentSettings():
     #Instatiates currentSettings and rowCount variables
     currentSettings = [0] * currentSettingsCount
     rowCount = 0
+    previousMetric = None
 
     #Iterates through the original file again, this time pulling out any settings found and placing them in currentSettings
     for index, row in inputFile.iterrows():
         settingsPresent = False
 
-        for setting in range(6, 15):
+        for setting in range(6, lastColumnIndex):
             if(not pandas.isna(row[setting]) and settingsPresent != True):
-                currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), NANtoEmpty(row[7]), NANtoEmpty(row[8]), NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), NANtoEmpty(row[12]), NANtoEmpty(row[13]), NANtoEmpty(row[14])]
+                if(lastColumnIndex == 14):
+                    currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), NANtoEmpty(row[7]), NANtoEmpty(row[8]), NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), NANtoEmpty(row[12]), "", NANtoEmpty(row[13]), NANtoEmpty(row[14])]
+                else:
+                    currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), NANtoEmpty(row[7]), NANtoEmpty(row[8]), NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), NANtoEmpty(row[12]), NANtoEmpty(row[13]), NANtoEmpty(row[14]), NANtoEmpty(row[15])]
+                
+                if(previousMetric != None and previousMetric[0] == row[0] and previousMetric[1] == row[1]):
+                    additionalRows += 1
+
+                previousMetric = [row[0], row[1]]
+
                 rowCount += 1
                 settingsPresent = True
                 break
@@ -184,11 +213,14 @@ metricsDataSize = 0
 def SizeCalculation():
     global resultsArray
     global metricsDataSize
+    global additionalRows
 
     for x in range(0, resultsArrayLengthHalf):
         table = resultsArray[(x * 2) + 1].replace("\n", "").replace("<table>", "").replace("</table>", "").replace("<thead>", "").split("</thead>")
         tableRows = table[1].replace("<tbody>", "").replace("</tbody>", "").split("</td></tr><tr><td>")
         metricsDataSize += len(tableRows)
+
+    metricsDataSize += additionalRows
 
 #Initialise structeredMetricsData
 structuredMetricsData = None
@@ -202,14 +234,17 @@ def BuildMetricsData():
     global ResTypeWithSettings
     global OptimisedSettingsListIndexes
 
-    #Length of structuredMetrics Data and rowTracker count incremented my 1 initially to allow for csv headings
+    #Length of structuredMetrics Data and rowTracker count incremented by 1 initially to allow for csv headings
     structuredMetricsData = [0] * (metricsDataSize + 1)
     rowTracker = 1
 
     #Csv headings for updated file
-    structuredMetricsData[0] = ["Resource Type", "Metric", "Metric Display Name", "Unit", "Aggregation Type", "Description", "Enable for monitoring", "Tag Name", "Threshold", "Operator", "Eval Frequency", "Window Size", "Aggregation Time", "Alert Description", "Severity"]
+    structuredMetricsData[0] = ["Resource Type", "Metric", "Metric Display Name", "Unit", "Aggregation Type", "Description", "Enable for monitoring", "Tag Name", "Threshold", "Operator", "Eval Frequency", "Window Size", "Aggregation Time", "Alert Name", "Alert Description", "Severity"]
 
     ResTypeCount = 0
+
+    #Keeps track of the number of multiple entries for a single metric to increment the final structuredMetricsData data frame accordingly
+    additionalRowCount = 0
 
     #Runs through iterations half as long as resultsArray as headings and html tables should be in pairs at this stage
     for x in range(0, resultsArrayLengthHalf):
@@ -271,7 +306,7 @@ def BuildMetricsData():
 
         #Places isolated metrics data into a nested array that will fit the required structure for the updated csv file 
         for n in range(0, len(tableRows)):
-            metricSetting = None
+            metricSetting = list([])
 
             #Removes any remaining html for hyperlinks with a link type "external"
             if "<a data-linktype=\"external\" href=\"" in block[2][n][5]:
@@ -300,14 +335,16 @@ def BuildMetricsData():
             if(settingsPresent):
                 for i  in range(0, len(OmpitimisedSettingsList)):
                     if(block[2][n][0] == OmpitimisedSettingsList[i][1]):
-                        metricSetting = OmpitimisedSettingsList[i]
-                        break
+                        metricSetting.append(OmpitimisedSettingsList[i])
 
             #Builds row for new metric setting in new file
-            if(not metricSetting == None):
-                structuredMetricsData[rowTracker + n] = [block[0], block[2][n][0], block[2][n][2], block[2][n][3], block[2][n][4], "\"" + block[2][n][5] + "\"", metricSetting[2], metricSetting[3], metricSetting[4], metricSetting[5], metricSetting[6], metricSetting[7], metricSetting[8], metricSetting[9], metricSetting[10]]
+            if(not metricSetting == []):
+                for metricCount in range(0, len(metricSetting)):
+                    structuredMetricsData[rowTracker + n + additionalRowCount + metricCount] = [block[0], block[2][n][0], block[2][n][2], block[2][n][3], block[2][n][4], "\"" + block[2][n][5] + "\"", metricSetting[metricCount][2], metricSetting[metricCount][3], metricSetting[metricCount][4], metricSetting[metricCount][5], metricSetting[metricCount][6], metricSetting[metricCount][7], metricSetting[metricCount][8], metricSetting[metricCount][9], metricSetting[metricCount][10], metricSetting[metricCount][11]]
+
+                additionalRowCount += (len(metricSetting) - 1)
             else:
-                structuredMetricsData[rowTracker + n] = [block[0], block[2][n][0], block[2][n][2], block[2][n][3], block[2][n][4], "\"" + block[2][n][5] + "\"", "", "", "", "", "", "", "", "", ""]
+                structuredMetricsData[rowTracker + n + additionalRowCount] = [block[0], block[2][n][0], block[2][n][2], block[2][n][3], block[2][n][4], "\"" + block[2][n][5] + "\"", "", "", "", "", "", "", "", "", "", ""]
 
         rowTracker += len(tableRows)
 
@@ -321,6 +358,10 @@ def WriteSupportedMetricsToFile():
 #Run time order in larger function for efficient returns
 def runTimeOrder():
     ExtractCurrentSettings()
+
+    #checkpoint
+    if(csvColumnIssue):
+        print("***Error: Format issue in csv file present***")
 
     PullHtml()
     InitialPageCheck()
