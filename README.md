@@ -35,8 +35,9 @@ NOTE: this script has been tested and validated with the following Azure resourc
    - 5.5 Eval Frequency: This is the defined evlaution period based on resource type
    - 5.6 Windows Size: This is the size of metric window to inspect
    - 5.7 Aggregation Time: Is defined by type of resource some count and others can have min/max or average
-   - 5.8 Alert Description: Describe your alert
-   - 5.9 Severity: This is a scale of 0-4 
+   - 5.8 Alert Name: Set a custom alert name (Required if using multiple alerts for a single metric to prevent Azure overwriting previously set alerts)
+   - 5.9 Alert Description: Describe your alert
+   - 5.10 Severity: This is a scale of 0-4 
 		- Sev 0 = Critical
 		- Sev 1 = Error
 		- Sev 2 = Warning
