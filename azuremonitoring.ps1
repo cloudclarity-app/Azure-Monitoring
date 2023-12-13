@@ -249,7 +249,7 @@ ForEach ($azresource in $azresources)
         }
         Else
         {
-            $alertname = $azmonitorcsv.'Alert Name'
+            $alertname = $azresourcename + '-' + $azmonitorcsv.'Alert Name'
         }
 #Remove / character
         If ($alertname -like '*/*')
