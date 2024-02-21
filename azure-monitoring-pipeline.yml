@@ -1,0 +1,11 @@
+# Azure Pipelines
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: AzurePowerShell@5
+  inputs:
+    azureSubscription: 'ServiceCon-AzureDevOps-HubSubscription'
+    ScriptPath: '$(system.defaultworkingdirectory)/azuremonitoring.ps1'
+    azurePowerShellVersion: 'LatestVersion'
