@@ -6,6 +6,6 @@ pool:
 steps:
 - task: AzurePowerShell@5
   inputs:
-    azureSubscription: 'ServiceCon-AzureDevOps-HubSubscription'
+    azureSubscription: 'ServiceCon-AzureDevOps'
     ScriptPath: '$(system.defaultworkingdirectory)/azuremonitoring.ps1'
     azurePowerShellVersion: 'LatestVersion'
