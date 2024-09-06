@@ -2,7 +2,7 @@
 **Automated Azure Monitoring**
 
 You can use this script to automatically set monitoring threshold on Azure resources.
-By default, the script applies to all metrics enabled for monitoring accross the entire subscription.
+By default, the script applies to all metrics enabled for monitoring accross the entire subscription. It will complete a review of all existing rules and any with no valid scope will be deleted
 You can restrict the scope by defining either a specific resource group, using the rgazresources variable, and/or a specific resource type, using the azrestype variable.
 
 **Folder Structure**
