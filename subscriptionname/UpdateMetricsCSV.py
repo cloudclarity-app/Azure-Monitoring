@@ -1,7 +1,8 @@
 # Author: David COOK - cubesys
 # Created: 25th Jan 2023 (25/1/2023)
-# Script Last Updated: 16th Mar 2023 (16/3/2023)
-# Supprorted Metrics Page Last Updated At Time Of Script Update: 13th Mar 2023 (13/3/2023)
+# Script Last Updated: 8th October 2024 (8/10/2024)
+# Supprorted Metrics Page Last Updated At Time Of Script Update: 30th September 2024 (30/9/2024)
+# Confirmed working using Python versions: 3.10.11
 
 # Requirements:
 # - Requests library (https://pypi.org/project/requests/)
@@ -29,7 +30,7 @@ import time
 start = time.time()
 
 #Reads in the input file with old supported metrics list and current settings
-inputFile = pandas.read_csv("./azure_monitoring.csv", encoding='cp1252')
+inputFile = pandas.read_csv("./azure_monitoring.csv", encoding='cp1252') #utf-8 cp1252
 
 #Initialises current settings and current settings count variables to store any currently set parameters for each metric
 currentSettings = None
@@ -133,227 +134,175 @@ def ExtractCurrentSettings():
 #Instantiate html results variable for global scope
 results = 0
 
-#Pulls Html data for h2 and html table elements
+#Pulls Html data for for main supported metrics page and all resource type pages with supported metrics
 def PullHtml():
+    global excessivePageChange
+    global metricsDataSize
+
     #Scrapes content from microsoft azure supported metrics page
-    URL = "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported"
+    URL = "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/metrics-index"
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, "html.parser")
 
-    #Isolates the content section
-    content = soup.find("div", class_="content")
+    ListOfMetricLinks = list([])
+    ResultData = list([])
+
+    #Isolates the table body section to build list of links to each resource type's metrics page
+    content = soup.find_all("tbody")
+
+    #Splits table into rows and interates through to gather links to individual supported metrics pages
+    contentTable = str(content[0]).split("</tr>\n<tr>")
+    for row in contentTable:
+        cleanedRow = str(row).split("</td>\n<td>")
+
+        #If multiple resource type links are in a single row
+        if "</a><a" in cleanedRow[1].replace("<br/>", ""):
+            for entry in cleanedRow[1].replace("<br/>", "").split("</a><a"):
+                ListOfMetricLinks.append(entry.replace("<a", "").replace(" data-linktype=\"relative-path\" href=\"", "").split("\">")[0])
+
+        elif cleanedRow[1].replace("<br/>", "") != "N/A":
+            ListOfMetricLinks.append(cleanedRow[1].replace("<br/>", "").replace("<a", "").replace(" data-linktype=\"relative-path\" href=\"", "").split("\">")[0])
+
+    #Scrape individual metrics pages for each supported resource type
+    for link in ListOfMetricLinks:
+        metricsURL = "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/" + link
+        metricsPage = requests.get(metricsURL)
+        metricsSoup = BeautifulSoup(metricsPage.content, "html.parser")
+
+        #List for each resource type with supported metrics -> first element is the resource type, second element is 2 dimensional array of the relevant supperted metrics data
+        MetricsData = list([])
+        MetricsDataContainer = list([])
+
+        #Isolates resource type from metrics page header
+        resourceType = str(str(metricsSoup.find_all("h1")[0]).split("Supported metrics for ")[1]).replace("</h1>", "")
+        MetricsData.append(resourceType)
+
+        #Isolates the metrics table body and splits the table into its table rows
+        metricsContent = str(metricsSoup.find_all("tbody")[0]).replace("<tbody>\n<tr>", "").replace("</tr>\n</tbody>", "").split("</tr>\n<tr>")
+
+        #Isolates the headers in the metrics table
+        metricsHeaders = str(str(metricsSoup.find_all("thead")[0]).replace("<thead>\n<tr>\n<th>", "")).replace("</th>\n</tr>\n</thead>", "").split("</th>\n<th>")
+
+        if numpy.array_equal(metricsHeaders, ['Metric', 'Name in REST API', 'Unit', 'Aggregation', 'Dimensions', 'Time Grains', 'DS Export']):
+            for metricRow in metricsContent:
+                MetricsDataRow = [0] * 6
+                MetricsDataRow[0] = resourceType
+
+                for index, metric in enumerate(metricRow.split("</td>\n<td>")):
+                    if index > 3:
+                        break
+
+                    if "<br/><br/>" in metric and index == 0:
+                        MetricsDataRow[2] = metric.split("<br/><br/>")[0].replace("\n<td>", "").replace("<strong>", "").replace("</strong>", "")
+                        MetricsDataRow[5] = CleanDescription(metric.split("<br/><br/>")[1])
+
+                    else:
+                        match index:
+                            case 0:
+                                MetricsDataRow[2] = metric.split("<br/><br/>")[0].replace("\n<td>", "").replace("<strong>", "").replace("</strong>", "").replace("<code>", "").replace("</code>", "")
+                            case 1:
+                                MetricsDataRow[1] = metric.replace("<td>", "").replace("</td>", "").replace("<code>", "").replace("</code>", "")
+                            case 2:
+                                MetricsDataRow[3] = metric.replace("<td>", "").replace("</td>", "").replace("<code>", "").replace("</code>", "")
+                            case 3:
+                                MetricsDataRow[4] = metric.replace("<td>", "").replace("</td>", "").replace("<code>", "").replace("</code>", "")
+                
+                MetricsDataContainer.append(MetricsDataRow)
+                metricsDataSize += 1
+
+
+        elif numpy.array_equal(metricsHeaders, ['Category', 'Metric', 'Name in REST API', 'Unit', 'Aggregation', 'Dimensions', 'Time Grains', 'DS Export']):
+            for metricRow in metricsContent:
+                MetricsDataRow = [0] * 6
+                MetricsDataRow[0] = resourceType
+
+                for index, metric in enumerate(metricRow.split("</td>\n<td>")):
+                    if index > 4:
+                        break
+
+                    if "<br/><br/>" in metric and index == 1:
+                        MetricsDataRow[2] = metric.split("<br/><br/>")[0].replace("\n<td>", "").replace("<strong>", "").replace("</strong>", "")
+                        MetricsDataRow[5] = CleanDescription(metric.split("<br/><br/>")[1])
+
+                    else:
+                        match index:
+                            case 1:
+                                MetricsDataRow[2] = metric.split("<br/><br/>")[0].replace("\n<td>", "").replace("<strong>", "").replace("</strong>", "").replace("<code>", "").replace("</code>", "")
+                            case 2:
+                                MetricsDataRow[1] = metric.replace("<td>", "").replace("</td>", "").replace("<code>", "").replace("</code>", "")
+                            case 3:
+                                MetricsDataRow[3] = metric.replace("<td>", "").replace("</td>", "").replace("<code>", "").replace("</code>", "")
+                            case 4:
+                                MetricsDataRow[4] = metric.replace("<td>", "").replace("</td>", "").replace("<code>", "").replace("</code>", "")
+
+                MetricsDataContainer.append(MetricsDataRow)
+                metricsDataSize += 1
+
+        else:
+            print("***Error in table headers: headers have changed and tables may not be uniform or columns have been added/removed***")
+            excessivePageChange = True
+            return
+        
+        MetricsData.append(MetricsDataContainer)
+        ResultData.append(MetricsData)
 
     #Gathers all headings and tables
     global results
-    results = content.find_all(["h2", "table"])
+    results = ResultData
 
 #Initialises page change check in global scope as trigger for page changes in future run times
 excessivePageChange = False
 
-#Checks for changes in the intial headings that have been gathered
-def InitialPageCheck():
-    for x in range(0, 5):
-        global excessivePageChange
-
-        #Previous/current known first 5 headers -> Updated changeCheckArray needed when excessive page changes occur
-        changeCheckArray = ["In this article", "Exporting platform metrics to other locations", "Guest OS and host OS metrics", "Table formatting", "Microsoft.AAD/DomainServices"]
-
-        #Formats the headers found at run time
-        changeCheck = [0] * 5
-        changeCheckTemp = str(results[x]).replace("</h2>", "").split(">")
-        changeCheck[x] = changeCheckTemp[1]
-
-        #Checks the headers found at run time against the previous/current known headers
-        if(changeCheck[x] != changeCheckArray[x]):
-            excessivePageChange = True
-            print("***Error: Initial headings retrieved don't match***")
-            return
-
 #Initialises variable that will hold the bulk of raw h2 and html table elements after inital headings are removed
 resultsFiltered = None
-
-#Filters non-table headings into a clean array
-def FilterResults():
-    global resultsFiltered
-    resultsFiltered = [0] * (len(results) - 5)
-    count = 0
-
-    #Filteres initial headings -> will need to be adjusted if additional information is added/removed before the
-    #supported metrics tables and headings
-    for x in range(4, len(results) - 1):
-        resultsFiltered[count] = str(results[x])
-        count+=1
-
-#Initialise resultsArray and resultsArrayHalfLength for global scope
-resultsArray = None
-resultsArrayLengthHalf = 0
-
-#Converts the list of headers and html tables to an array format
-def ConvertToArray():
-    global excessivePageChange
-    global resultsArray
-    resultsArray = numpy.array(resultsFiltered)
-
-    #alert if array not in the expected structure with heading and table pairs
-    if(len(resultsArray) % 2 != 0):
-        print("***Error in retrieving supported metric tables: odd number of html tables and headings found***")
-        excessivePageChange = True
-        return
-
-    global resultsArrayLengthHalf
-    resultsArrayLengthHalf = len(resultsArray) // 2
-
-#Html table columns needed -> Metric, Metric Display Name, Unit, Aggregation Type, Description
-#Html table column index needed -> 0, 2, 3, 4, 5 (5 out of 7 total columns)
 
 #Initialises the count for number of entries in new file
 metricsDataSize = 0
 
-#Calculates the number of entries that will be present in updated file
-def SizeCalculation():
-    global resultsArray
-    global metricsDataSize
-    global additionalRows
-
-    for x in range(0, resultsArrayLengthHalf):
-        table = resultsArray[(x * 2) + 1].replace("\n", "").replace("<table>", "").replace("</table>", "").replace("<thead>", "").split("</thead>")
-        tableRows = table[1].replace("<tbody>", "").replace("</tbody>", "").split("</td></tr><tr><td>")
-        metricsDataSize += len(tableRows)
-
-    metricsDataSize += additionalRows
-
 #Initialise structeredMetricsData
 structuredMetricsData = None
 
-#Structures and formats the scraped content from headings and html tables
-def BuildMetricsData():
-    global excessivePageChange
-    global structuredMetricsData
-    global resultsArray
-    global currentSettings
-    global ResTypeWithSettings
-    global OptimisedSettingsListIndexes
+#Removes any remaining html in description resulting from links along with comma removal to prevent issues when writing data to csv
+def CleanDescription(description):
+    if "<a data-linktype=\"external\" href=\"" in description:
+        startSegment = str(description).split("<a data-linktype=\"external\" href=\"")[0]
+        link = str(description).split("<a data-linktype=\"external\" href=\"")[1].split("</a>")[0].split(">")[0]
+        endSegment = str(description).split("<a data-linktype=\"external\" href=\"")[1].split("</a>")[1]
 
-    #Length of structuredMetrics Data and rowTracker count incremented by 1 initially to allow for csv headings
-    structuredMetricsData = [0] * (metricsDataSize + 1)
-    rowTracker = 1
+        return (startSegment + link + endSegment).replace(",", "")
+    else:
+        return str(description).replace(",", "")
+
+def PrepareDataForWriteToFile():
+    global structuredMetricsData
+    structuredMetricsData = list([])
 
     #Csv headings for updated file
-    structuredMetricsData[0] = ["Resource Type", "Metric", "Metric Display Name", "Unit", "Aggregation Type", "Description", "Enable for monitoring", "Tag Name", "Threshold", "Operator", "Eval Frequency", "Window Size", "Aggregation Time", "Alert Name", "Alert Description", "Severity"]
+    structuredMetricsData.append(["Resource Type", "Metric", "Metric Display Name", "Unit", "Aggregation Type", "Description", "Enable for monitoring", "Tag Name", "Threshold", "Operator", "Eval Frequency", "Window Size", "Aggregation Time", "Alert Name", "Alert Description", "Severity"])
 
-    ResTypeCount = 0
+    for resourceData in results:
+        resTypeIndex = None
+        if resourceData[0] in ResTypeWithSettings:
+            for index, resType in enumerate(ResTypeWithSettings):
+                if resourceData[0] == resType:
+                    resTypeIndex = index
+            
+            for metric in resourceData[1]:
+                for resTypeArrayId in OptimisedSettingsListIndexes[resTypeIndex]:
+                    if str(metric[1]) == currentSettings[resTypeArrayId][1]:
+                        structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", currentSettings[resTypeArrayId][2], currentSettings[resTypeArrayId][3], currentSettings[resTypeArrayId][4], currentSettings[resTypeArrayId][5], currentSettings[resTypeArrayId][6], currentSettings[resTypeArrayId][7], currentSettings[resTypeArrayId][8], currentSettings[resTypeArrayId][9], currentSettings[resTypeArrayId][10], currentSettings[resTypeArrayId][11]])
 
-    #Keeps track of the number of multiple entries for a single metric to increment the final structuredMetricsData data frame accordingly
-    additionalRowCount = 0
+        else:
+            for metric in resourceData[1]:
+                structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", "", "", "", "", "", "", "", "", "", ""])
 
-    #Runs through iterations half as long as resultsArray as headings and html tables should be in pairs at this stage
-    for x in range(0, resultsArrayLengthHalf):
-        block = [0] * 3
-
-        #Isolates heading (resource type) for related html table
-        heading = resultsArray[x * 2].replace("</h2>", "").split(">")
-
-        # block[0] -> resource type
-        block[0] = heading[1]
-
-        #Isolates html for the current resource type's metric table
-        table = resultsArray[(x * 2) + 1].replace("\n", "").replace("<table>", "").replace("</table>", "").replace("<thead>", "").split("</thead>")
-
-        #Isolates table headers
-        headers = table[0].replace("<tr><th>", "").replace("</th></tr>", "").split("</th><th>")
-
-        # block[1] -> Headers for the current html table
-        block[1] = headers
-
-        tableRows = table[1].replace("<tbody>", "").replace("</tbody>", "").split("</td></tr><tr><td>")
-
-        rows = [0] * len(tableRows)
-
-        for i in range(0, len(tableRows)):
-            rows[i] = tableRows[i].replace("<tr><td>", "").split("</td><td>")
-
-        # block[2] -> All rows of data from the current html table
-        block[2] = rows
-
-        #Expected headers for html tables
-        checkTableHeadersArray = ['Metric', 'Exportable via Diagnostic Settings?', 'Metric Display Name', 'Unit', 'Aggregation Type', 'Description', 'Dimensions']
-
-        #Checks that each table's headers are the same as the currently expected headers
-        for k in range(0, len(block[1])):
-            if(checkTableHeadersArray[k] != block[1][k]):
-                print("***Error in table headers: headers have changed and tables may not be uniform or columns have been added/removed***")
-                excessivePageChange = True
-                return
-
-        #Initialises settingsPresent and OptimisedSettingsList variables within BuildMetricsData() scope
-        settingsPresent = False
-        OmpitimisedSettingsList = list([])
-
-        #Checks if there are any settings relating to the current resource type present
-        if block[0] in ResTypeWithSettings:
-            settingsPresent = True
-
-            #Checks for the next resource type with metrics settings present and moves the safety net "ResTypeCount" up to
-            #the last found resource type with settings present to skip earlier iterations that have already been checked
-            for x in range(ResTypeCount, len(ResTypeWithSettings)):
-                if(ResTypeWithSettings[x] == block[0]):
-                    ResTypeCount = x
-                    break
-
-            #Gathers metric settings present for current resource type and places them in a list
-            for x in OptimisedSettingsListIndexes[ResTypeCount]:
-                OmpitimisedSettingsList.append(currentSettings[x])
-
-        #Places isolated metrics data into a nested array that will fit the required structure for the updated csv file 
-        for n in range(0, len(tableRows)):
-            metricSetting = list([])
-
-            #Removes any remaining html for hyperlinks with a link type "external"
-            if "<a data-linktype=\"external\" href=\"" in block[2][n][5]:
-                split = block[2][n][5].split("<a data-linktype=\"external\" href=\"")
-                partOne = split[0]
-                partTwoSplit = split[1].replace("</a>", "").split(">")
-                partTwo = partTwoSplit[1]
-
-                block[2][n][5] = partOne + partTwo
-
-            #Removes any remaining html for hyperlinks with a link type "absolute-path"
-            if "<a data-linktype=\"absolute-path\" href=\"" in block[2][n][5]:
-                split = block[2][n][5].split("<a data-linktype=\"absolute-path\" href=\"")
-                partOne = split[0]
-                partTwoSplit = split[1].replace("</a>", "").split(">")
-                partTwo = partTwoSplit[1]
-
-                block[2][n][5] = partOne + partTwo
-
-            #Replaces an quotation marks in the descriptions with an apostrophy to avoid issues when writing to the csv
-            if"\"" in block[2][n][5]:
-                grammarCheck = block[2][n][5].replace("\"", "'")
-                block[2][n][5] = grammarCheck
-
-            #Assigns any previously set settings for the metric
-            if(settingsPresent):
-                for i  in range(0, len(OmpitimisedSettingsList)):
-                    if(block[2][n][0] == OmpitimisedSettingsList[i][1]):
-                        metricSetting.append(OmpitimisedSettingsList[i])
-
-            #Builds row for new metric setting in new file
-            if(not metricSetting == []):
-                for metricCount in range(0, len(metricSetting)):
-                    structuredMetricsData[rowTracker + n + additionalRowCount + metricCount] = [block[0], block[2][n][0], block[2][n][2], block[2][n][3], block[2][n][4], "\"" + block[2][n][5] + "\"", metricSetting[metricCount][2], metricSetting[metricCount][3], metricSetting[metricCount][4], metricSetting[metricCount][5], metricSetting[metricCount][6], metricSetting[metricCount][7], metricSetting[metricCount][8], metricSetting[metricCount][9], metricSetting[metricCount][10], metricSetting[metricCount][11]]
-
-                additionalRowCount += (len(metricSetting) - 1)
-            else:
-                structuredMetricsData[rowTracker + n + additionalRowCount] = [block[0], block[2][n][0], block[2][n][2], block[2][n][3], block[2][n][4], "\"" + block[2][n][5] + "\"", "", "", "", "", "", "", "", "", "", ""]
-
-        rowTracker += len(tableRows)
-
-#Writes supportedMetricsData to csv file
+#Writes supportedMetricsData to csv file -> test
 def WriteSupportedMetricsToFile():
+    global structuredMetricsData
     arr = numpy.asarray(structuredMetricsData)
 
     #Adjust file name as neccessary
-    numpy.savetxt('./azure_monitoring.csv', arr, fmt = '%s', delimiter=",", encoding="utf-8")
+    numpy.savetxt('./azure_monitoring.csv', arr, fmt = '%s', delimiter=',', encoding="utf-8")
 
 #Run time order in larger function for efficient returns
 def runTimeOrder():
@@ -364,29 +313,13 @@ def runTimeOrder():
         print("***Error: Format issue in csv file present***")
 
     PullHtml()
-    InitialPageCheck()
 
     #checkpoint
     if(excessivePageChange):
         print("***Error: Initial page check failed***")
         return
 
-    FilterResults()
-    ConvertToArray()
-
-    #checkpoint
-    if(excessivePageChange):
-        print("***Error: Falied to filter and convert to array***")
-        return
-
-    SizeCalculation()
-    BuildMetricsData()
-
-    #checkpoint
-    if(excessivePageChange):
-        print("***Error: Failed to build metrics data***")
-        return
-
+    PrepareDataForWriteToFile()
     WriteSupportedMetricsToFile()
 
 runTimeOrder()
