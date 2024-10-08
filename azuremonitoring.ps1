@@ -66,6 +66,27 @@ Param(
 )
 #endregion Parameters
 
+# Complete a clean of Azure Alert Rules where there is no valid scope item associated
+
+# Get all alert rules
+$alertRules = Get-AzMetricAlertRuleV2
+
+# Iterate through each alert rule
+foreach ($rule in $alertRules) {
+    $resourceId = $rule.Scopes[0]  # Assuming each alert rule has only one scope
+    try {
+        # Validate if the monitored resource exists
+        $resource = Get-AzResource -ResourceId $resourceId -ErrorAction Stop
+        Write-Output "Resource $resourceId exists. Alert rule $($rule.Name) is valid." -ForegroundColor Green -BackgroundColor Black
+    }
+    catch {
+        # If the resource does not exist, delete the alert rule
+        Write-Warning "Resource $resourceId does not exist. Deleting alert rule $($rule.Name)..." -ForegroundColor Red -BackgroundColor Black
+        Remove-AzMetricAlertRuleV2 -ResourceGroupName $rule.resourceGroup -Name $rule.Name
+        Write-Output "Alert rule $($rule.Name) deleted successfully." -ForegroundColor Yellow -BackgroundColor Black
+    }
+}
+
 #Import CSV file list of Azure Monitor and filter to the ones enable for monitoring
 #List availble at https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported
 $csvpath = "$psscriptroot\$fileslocation\azure_monitoring.csv"
@@ -249,7 +270,7 @@ ForEach ($azresource in $azresources)
         }
         Else
         {
-            $alertname = $azmonitorcsv.'Alert Name'
+            $alertname = $azresourcename + '-' + $azmonitorcsv.'Alert Name'
         }
 #Remove / character
         If ($alertname -like '*/*')
