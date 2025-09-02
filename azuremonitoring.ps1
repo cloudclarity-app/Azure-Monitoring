@@ -62,7 +62,11 @@ Param(
 
 #Mandatory - Action Group name
     [Parameter(Mandatory=$true)]
-    $actiongroupname
+    $actiongroupname,
+
+#Resource groups to exclude - If you need to exclude certain resource groups
+    [Parameter(Mandatory=$false)]
+    $excludedRgs = @()
 )
 #endregion Parameters
 
@@ -87,9 +91,12 @@ foreach ($rule in $alertRules) {
     }
 }
 
+$psscriptroot = Get-Location
+
 #Import CSV file list of Azure Monitor and filter to the ones enable for monitoring
 #List availble at https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported
 $csvpath = "$psscriptroot\$fileslocation\azure_monitoring.csv"
+
 $azuremonitor = Import-Csv $csvpath | Where-Object {$_.'Enable for monitoring' -eq 'yes'}
 
 #Define default behavior when error occurs
@@ -283,7 +290,7 @@ ForEach ($azresource in $azresources)
         If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
         {
 #JSON template file
-            $templatefilepath = "$psscriptroot\template_2015-01-01.json"
+            $templatefilepath = "$psscriptroot\Alerts\template_2015-01-01.json"
 #JSON parameters file
             $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2015-01-01.json"
         }
@@ -291,7 +298,7 @@ ForEach ($azresource in $azresources)
 #Storage account, virtual machines, web apps
         {
 #JSON template file
-            $templatefilepath = "$psscriptroot\template_2019-04-01.json"
+            $templatefilepath = "$psscriptroot\Alerts\template_2019-04-01.json"
 #JSON parameters file
             $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2019-04-01.json"
         }
@@ -335,8 +342,11 @@ ForEach ($azresource in $azresources)
             $deploymentname = $deploymentname.Substring(0,64) 
         }
 
-        Write-Host "Deploy monitoring alert" $azmonitorcsv.'Metric Display Name' "on resource" $azresourcename "with threshold value set to" $threshold -ForegroundColor Green -BackgroundColor Black
-        New-AzResourceGroupDeployment -Name $deploymentname -ResourceGroupName $azresourcergname -TemplateFile $templatefilepath -TemplateParameterFile $parametersfilepath
+        If ($excludedRgs -notcontains $azresourcergname)
+        {
+            Write-Host "Deploy monitoring alert" $azmonitorcsv.'Metric Display Name' "on resource" $azresourcename "with threshold value set to" $threshold -ForegroundColor Green -BackgroundColor Black
+            New-AzResourceGroupDeployment -Name $deploymentname -ResourceGroupName $azresourcergname -TemplateFile $templatefilepath -TemplateParameterFile $parametersfilepath
+        }
     }
 }
 
