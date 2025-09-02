@@ -288,9 +288,15 @@ def PrepareDataForWriteToFile():
                     resTypeIndex = index
             
             for metric in resourceData[1]:
+                currentDataForMetricCheck = False
+
                 for resTypeArrayId in OptimisedSettingsListIndexes[resTypeIndex]:
                     if str(metric[1]) == currentSettings[resTypeArrayId][1]:
                         structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", currentSettings[resTypeArrayId][2], currentSettings[resTypeArrayId][3], currentSettings[resTypeArrayId][4], currentSettings[resTypeArrayId][5], currentSettings[resTypeArrayId][6], currentSettings[resTypeArrayId][7], currentSettings[resTypeArrayId][8], currentSettings[resTypeArrayId][9], currentSettings[resTypeArrayId][10], currentSettings[resTypeArrayId][11]])
+                        currentDataForMetricCheck = True
+                
+                if(currentDataForMetricCheck == False):
+                    structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", "", "", "", "", "", "", "", "", "", ""])
 
         else:
             for metric in resourceData[1]:
