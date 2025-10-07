@@ -296,46 +296,6 @@ ForEach ($azresource in $azresources)
             $alertname = $alertname -replace ('/','-')
         }
 
-        #Generate parameters files depending of the resource type
-        #SQL Databases
-        If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
-        {
-            #JSON template file
-            $templatefilepath = "$psscriptroot\Alerts\template_2015-01-01.json"
-
-            #JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2015-01-01.json"
-        }
-        Else
-        {
-            #Storage account, virtual machines, web apps
-
-            #JSON template file
-            $templatefilepath = "$psscriptroot\Alerts\template_2019-04-01.json"
-
-            #JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2019-04-01.json"
-        }
-
-        #Parameters
-        $paramfile = Get-Content $parametersfilepath -Raw | ConvertFrom-Json
-        $paramfile.parameters.alertName.value = $alertname
-        $paramfile.parameters.alertDescription.value = $alertdescription
-        $paramfile.parameters.metricName.value = $metricname
-        $paramfile.parameters.metricNamespace.value = ($azmonitorcsv.'Resource Type')
-        $paramfile.parameters.resourceId.value = $azresourceid
-        $paramfile.parameters.threshold.value = $threshold
-        $paramfile.parameters.actionGroupId.value = $actiongroupid
-        $paramfile.parameters.timeAggregation.value = $azmonitorcsv.'Aggregation Time'
-        $paramfile.parameters.operator.value = $azmonitorcsv.Operator
-        $paramfile.parameters.alertSeverity.value = [int]($azmonitorcsv.Severity)
-        $paramfile.parameters.evaluationFrequency.value = $azmonitorcsv.'Eval Frequency'
-        $paramfile.parameters.windowSize.value = $azmonitorcsv.'Window Size'
-
-        #Update parameters file JSON
-        $updatedjson = $paramfile | ConvertTo-Json
-        $updatedjson > $parametersfilepath
-
         #Deploy monitoring
         $deploymentname = $alertname
 
@@ -358,8 +318,87 @@ ForEach ($azresource in $azresources)
             $deploymentname = $deploymentname.Substring(0,64) 
         }
 
+        if($azmonitorscsv.'Alert Type' -eq "Dynamic") {
+            #Parameteres for dynamic alerts using bicep
+            $bicepAlertTemplatePath = "$psscriptroot\Dynamic-Alert.bicep"
+            $bicepAlertTemplateParamFilePath = "$psscriptroot\$fileslocation\Dynamic-Alert.bicepparam"
+
+            (Get-Content $bicepAlertTemplateParamFilePath) |
+            ForEach-Object {
+                switch -Wildcard ($_) {
+                    "using '../Dynamic-Alert.bicep'" {"using '../Dynamic-Alert.bicep'"}
+                    "" {""}
+                    "param alertName = *" {"param alertName = '$alertname'"}
+                    "param alertDescription = *" {"param alertDescription = '$alertdescription'"}
+                    "param alertSeverity = *" {"param alertSeverity = " + $azmonitorcsv.Severity}
+                    "param isEnabled = *" {"param isEnabled = true"}
+                    "param resourceId = *" {"param resourceId = '$azresourceid'"}
+                    "param metricName = *" {"param metricName = '$metricname'"}
+                    "param metricNamespace = *" {"param metricNamespace = '" + $azmonitorcsv.'Resource Type' + "'"}
+                    "param operator = *" {"param operator = '" + $azmonitorcsv.Operator +"'"}
+                    "param alertSensitivity = *" {"param alertSensitivity = '" + $azmonitorcsv.'Threshold Sensitivity' + "'"}
+                    "param timeAggregation = *" {"param timeAggregation = '" + $azmonitorcsv.'Aggregation Time' + "'"}
+                    "param windowSize = *" {"param windowSize = '" + $azmonitorcsv.'Window Size' + "'"}
+                    "param evaluationFrequency = *" {"param evaluationFrequency = '" + $azmonitorcsv.'Eval Frequency' + "'"}
+                    "param failingPeriods = *" {"param failingPeriods = " + $azmonitorcsv.'Failing Periods'}
+                    "param evalPeriods = *" {"param evalPeriods = " + $azmonitorcsv.'Evaluation Periods'}
+                    "param actionGroupId = *" {"param actionGroupId = '$actiongroupid'"}
+                }
+            } | Set-Content $bicepAlertTemplateParamFilePath
+        }
+        Else 
+        {
+            #Generate parameters files depending of the resource type
+            #SQL Databases
+            If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
+            {
+                #JSON template file
+                $templatefilepath = "$psscriptroot\Alerts\template_2015-01-01.json"
+
+                #JSON parameters file
+                $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2015-01-01.json"
+            }
+            Else
+            {
+                #Storage account, virtual machines, web apps
+
+                #JSON template file
+                $templatefilepath = "$psscriptroot\template_2019-04-01.json"
+
+                #JSON parameters file
+                $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2019-04-01.json"
+            }
+
+            #Parameters
+            $paramfile = Get-Content $parametersfilepath -Raw | ConvertFrom-Json
+            $paramfile.parameters.alertName.value = $alertname
+            $paramfile.parameters.alertDescription.value = $alertdescription
+            $paramfile.parameters.metricName.value = $metricname
+            $paramfile.parameters.metricNamespace.value = ($azmonitorcsv.'Resource Type')
+            $paramfile.parameters.resourceId.value = $azresourceid
+            $paramfile.parameters.threshold.value = $threshold
+            $paramfile.parameters.actionGroupId.value = $actiongroupid
+            $paramfile.parameters.timeAggregation.value = $azmonitorcsv.'Aggregation Time'
+            $paramfile.parameters.operator.value = $azmonitorcsv.Operator
+            $paramfile.parameters.alertSeverity.value = [int]($azmonitorcsv.Severity)
+            $paramfile.parameters.evaluationFrequency.value = $azmonitorcsv.'Eval Frequency'
+            $paramfile.parameters.windowSize.value = $azmonitorcsv.'Window Size'
+
+            #Update parameters file JSON
+            $updatedjson = $paramfile | ConvertTo-Json
+            $updatedjson > $parametersfilepath
+        }
+
         If ($excludedRgs -notcontains $azresourcergname)
         {
+            if($azmonitorscsv.'Alert Type' -eq "Dynamic") {
+                Write-Host "Deploy dynamic monitoring alert" $azmonitorcsv.'Metric Display Name' "on resource" $azresourcename "with threshold sensitivity set to" $azmonitorcsv.'Threshold Sensitivity' -ForegroundColor Green -BackgroundColor Black
+                New-AzResourceGroupDeployment -Name $deploymentname -ResourceGroupName $azresourcergname -TemplateFile $bicepAlertTemplatePath -TemplateParameterFile $bicepAlertTemplateParamFilePath
+
+                continue
+            }
+
+            #Reaches this section if alert is not dynamic
             Write-Host "Deploy monitoring alert" $azmonitorcsv.'Metric Display Name' "on resource" $azresourcename "with threshold value set to" $threshold -ForegroundColor Green -BackgroundColor Black
             New-AzResourceGroupDeployment -Name $deploymentname -ResourceGroupName $azresourcergname -TemplateFile $templatefilepath -TemplateParameterFile $parametersfilepath
         }

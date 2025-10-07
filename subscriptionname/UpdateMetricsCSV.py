@@ -45,6 +45,8 @@ additionalRows = 0
 def NANtoEmpty(setting):
     if(pandas.isna(setting)):
         return ""
+    elif(pandas.isnull(setting)):
+        return ""
     else:
         return setting
 
@@ -62,13 +64,12 @@ def ExtractCurrentSettings():
     global csvColumnIssue
     global additionalRows
 
-    lastColumnIndex = 14
+    lastColumnIndex = len(inputFile.columns) - 1
 
     if("Alert Name" in inputFile.columns):
         alertNameColumnPresent = True
-        lastColumnIndex = 15
 
-        if(not inputFile.columns[13] == "Alert Name"):
+        if(not inputFile.columns[lastColumnIndex - 2] == "Alert Name"):
             csvColumnIssue = True
             print("Error: Misplaced Alert Name column. Must be the 13th column (3rd last) between the Aggregation Time and Alert Description columns")
             return
@@ -94,15 +95,21 @@ def ExtractCurrentSettings():
 
         for setting in range(6, lastColumnIndex):
             if(not pandas.isna(row[setting]) and settingsPresent != True):
-                if(lastColumnIndex == 14):
-                    currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), NANtoEmpty(row[7]), NANtoEmpty(row[8]), NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), NANtoEmpty(row[12]), "", NANtoEmpty(row[13]), NANtoEmpty(row[14])]
-                else:
-                    currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), NANtoEmpty(row[7]), NANtoEmpty(row[8]), NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), NANtoEmpty(row[12]), NANtoEmpty(row[13]), NANtoEmpty(row[14]), NANtoEmpty(row[15])]
+                if(lastColumnIndex == 14): #Handles v1 csv
+                    currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), "", NANtoEmpty(row[7]), NANtoEmpty(row[8]), "", NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), "", "", NANtoEmpty(row[12]), "", NANtoEmpty(row[13]), NANtoEmpty(row[14])]
+                elif(lastColumnIndex == 15): #Handles v2 csv
+                    currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), "", NANtoEmpty(row[7]), NANtoEmpty(row[8]), "", NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), "", "", NANtoEmpty(row[12]), NANtoEmpty(row[13]), NANtoEmpty(row[14]), NANtoEmpty(row[15])]
+                else: #handles v3 csv
+                    currentSettings[rowCount] = [row[0], row[1], NANtoEmpty(row[6]), NANtoEmpty(row[7]), NANtoEmpty(row[8]), NANtoEmpty(row[9]), NANtoEmpty(row[10]), NANtoEmpty(row[11]), NANtoEmpty(row[12]), NANtoEmpty(row[13]), NANtoEmpty(row[14]), NANtoEmpty(row[15]), NANtoEmpty(row[16]), NANtoEmpty(row[17]), NANtoEmpty(row[18]), NANtoEmpty(row[19])]
                 
                 if(previousMetric != None and previousMetric[0] == row[0] and previousMetric[1] == row[1]):
                     additionalRows += 1
 
                 previousMetric = [row[0], row[1]]
+
+
+                if(len(currentSettings[rowCount]) != 16):
+                    print(currentSettings[rowCount])
 
                 rowCount += 1
                 settingsPresent = True
@@ -278,7 +285,7 @@ def PrepareDataForWriteToFile():
     structuredMetricsData = list([])
 
     #Csv headings for updated file
-    structuredMetricsData.append(["Resource Type", "Metric", "Metric Display Name", "Unit", "Aggregation Type", "Description", "Enable for monitoring", "Tag Name", "Threshold", "Operator", "Eval Frequency", "Window Size", "Aggregation Time", "Alert Name", "Alert Description", "Severity"])
+    structuredMetricsData.append(["Resource Type", "Metric", "Metric Display Name", "Unit", "Aggregation Type", "Description", "Enable for monitoring", "Alert Type", "Tag Name", "Threshold", "Threshold Sensitivity", "Operator", "Eval Frequency", "Window Size", "Failing Periods", "Evaluation Periods", "Aggregation Time", "Alert Name", "Alert Description", "Severity"])
 
     for resourceData in results:
         resTypeIndex = None
@@ -292,15 +299,15 @@ def PrepareDataForWriteToFile():
 
                 for resTypeArrayId in OptimisedSettingsListIndexes[resTypeIndex]:
                     if str(metric[1]) == currentSettings[resTypeArrayId][1]:
-                        structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", currentSettings[resTypeArrayId][2], currentSettings[resTypeArrayId][3], currentSettings[resTypeArrayId][4], currentSettings[resTypeArrayId][5], currentSettings[resTypeArrayId][6], currentSettings[resTypeArrayId][7], currentSettings[resTypeArrayId][8], currentSettings[resTypeArrayId][9], currentSettings[resTypeArrayId][10], currentSettings[resTypeArrayId][11]])
+                        structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", currentSettings[resTypeArrayId][2], currentSettings[resTypeArrayId][3], currentSettings[resTypeArrayId][4], currentSettings[resTypeArrayId][5], currentSettings[resTypeArrayId][6], currentSettings[resTypeArrayId][7], currentSettings[resTypeArrayId][8], currentSettings[resTypeArrayId][9], currentSettings[resTypeArrayId][10], currentSettings[resTypeArrayId][11], currentSettings[resTypeArrayId][12], currentSettings[resTypeArrayId][13], currentSettings[resTypeArrayId][14], currentSettings[resTypeArrayId][15]])
                         currentDataForMetricCheck = True
                 
                 if(currentDataForMetricCheck == False):
-                    structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", "", "", "", "", "", "", "", "", "", ""])
+                    structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])
 
         else:
             for metric in resourceData[1]:
-                structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", "", "", "", "", "", "", "", "", "", ""])
+                structuredMetricsData.append([str(metric[0]), str(metric[1]), str(metric[2]), "\"" + str(metric[3]) + "\"", "\"" + str(metric[4]) + "\"", "\"" + str(metric[5]) + "\"", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])
 
 #Writes supportedMetricsData to csv file -> test
 def WriteSupportedMetricsToFile():
