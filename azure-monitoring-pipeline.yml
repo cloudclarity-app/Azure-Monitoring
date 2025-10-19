@@ -9,3 +9,4 @@ steps:
     azureSubscription: 'ServiceCon-AzureDevOps'
     ScriptPath: '$(system.defaultworkingdirectory)/azuremonitoring.ps1'
     azurePowerShellVersion: 'LatestVersion'
+    ScriptArguments: '-filesLocation "subscriptionname" -rgactiongroup "" -actiongroupname "" -excludedRgs @()'

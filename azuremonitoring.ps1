@@ -42,27 +42,32 @@
 #>
 
 #Script to set threshold values for monitoring components
+
 #region Parameters
 Param(
-#Resource Group where resources are located - if need to filter to a specifc RG instead of the complete subscription
+    #Resource Group where resources are located - if need to filter to a specifc RG instead of the complete subscription
     [Parameter(Mandatory=$false)]
     $rgazresources,
 
-#Resource type - if need to filter to a specific resource type instead of running for all resource types
+    #Resource type - if need to filter to a specific resource type instead of running for all resource types
     [Parameter(Mandatory=$false)]
     $azrestype,
 
-#Location of CSV and parameter.json files
+    #Location of CSV and parameter.json files
     [Parameter(Mandatory=$true)]
     $fileslocation,
 
-#Mandatory - Resource Group where the action group is located
+    #Mandatory - Resource Group where the action group is located
     [Parameter(Mandatory=$true)]
     $rgactiongroup,
 
-#Mandatory - Action Group name
+    #Mandatory - Action Group name
     [Parameter(Mandatory=$true)]
-    $actiongroupname
+    $actiongroupname,
+
+    #Resource groups to exclude - If you need to exclude certain resource groups
+    [Parameter(Mandatory=$false)]
+    $excludedRgs = @()
 )
 #endregion Parameters
 
@@ -74,6 +79,7 @@ $alertRules = Get-AzMetricAlertRuleV2
 # Iterate through each alert rule
 foreach ($rule in $alertRules) {
     $resourceId = $rule.Scopes[0]  # Assuming each alert rule has only one scope
+
     try {
         # Validate if the monitored resource exists
         $resource = Get-AzResource -ResourceId $resourceId -ErrorAction Stop
@@ -87,9 +93,12 @@ foreach ($rule in $alertRules) {
     }
 }
 
+$psscriptroot = Get-Location
+
 #Import CSV file list of Azure Monitor and filter to the ones enable for monitoring
 #List availble at https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported
 $csvpath = "$psscriptroot\$fileslocation\azure_monitoring.csv"
+
 $azuremonitor = Import-Csv $csvpath | Where-Object {$_.'Enable for monitoring' -eq 'yes'}
 
 #Define default behavior when error occurs
@@ -116,6 +125,7 @@ If($azuremonitor.count -eq 0)
     Write-Host "No resource types have been enabled for monitoring. Please update the CSV file." -ForegroundColor Red -BackgroundColor Black
     Throw
 }
+
 #Checking if the resource group defined in parameter is found or if the resouce type defined is enabled for monitoring
 If (($rgazresources) -or ($azrestype))
 {
@@ -144,11 +154,13 @@ If (($rgazresources) -or ($azrestype))
 
 #Create array of Azure resource type to monitor
 $azrestypemonitoring = @()
+
 ForEach ($csvrow in $azuremonitor)
 {
     $aztype = $csvrow.'Resource Type'
     $azrestypemonitoring = $azrestypemonitoring + $aztype
 }
+
 #Get unique resource type
 $azrestypemonitoring = $azrestypemonitoring | Select-Object -Unique
 
@@ -156,7 +168,7 @@ $azrestypemonitoring = $azrestypemonitoring | Select-Object -Unique
 #If no paramaters provided
 If ((!$rgazresources) -and (!$azrestype))
 {
-#If no resource group specified, get all resources accross the subscription
+    #If no resource group specified, get all resources accross the subscription
     Write-Host "Setting alert for all resources type enabled for monitoring in the source CSV for the entire subscription" -ForegroundColor Green -BackgroundColor Black
     Try
     {
@@ -167,6 +179,7 @@ If ((!$rgazresources) -and (!$azrestype))
         $_.Exception.Message
     }
 }
+
 #if resource type parameter provided, check if the resource type is listed for monitoring
 If ($azrestype)
 {
@@ -181,6 +194,7 @@ If ($azrestype)
         Exit
     }
 }
+
 #If both resource group and resoure type parameters provided
 If (($rgazresources) -and ($azrestype))
 {
@@ -194,6 +208,7 @@ If (($rgazresources) -and ($azrestype))
         $_.Exception.Message
     }
 }
+
 #If only resource type parameter provided
 If ($azrestype)
 {
@@ -234,14 +249,15 @@ ForEach ($azresource in $azresources)
     $azresourcetagskeys = $azresource.Tags.Keys
     $azresourcergname = $azresource.ResourceGroupName
 
-#Get monitor settings for the current azure resource type
+    #Get monitor settings for the current azure resource type
     $azmonitorscsv = $azuremonitor | Where-Object {$_.'Resource Type' -eq $azresourcetype}
 
-#Lookup for the tag name for monitoring
+    #Lookup for the tag name for monitoring
     ForEach ($azmonitorcsv in $azmonitorscsv)
     {
-#If the tag key does not exist set the value to value from CSV
+        #If the tag key does not exist set the value to value from CSV
         $aztagname = $azmonitorcsv.'Tag Name'
+
         If (($azresourcetagskeys -match $aztagname) -and ($aztagname))
         {
            Write-Host "Tag" $aztagname "found for resource" $azresourcename  -ForegroundColor Green -BackgroundColor Black
@@ -252,7 +268,7 @@ ForEach ($azresource in $azresources)
             $threshold = $azmonitorcsv.Threshold
         }
 
-#Set alert desciption
+        #Set alert desciption
         If (!($azmonitorcsv.'Alert Description'))
         {
             $alertdescription = $azmonitorcsv.Description
@@ -263,7 +279,8 @@ ForEach ($azresource in $azresources)
         }
 
         $metricname = $azmonitorcsv.Metric
-#Set alert name
+
+        #Set alert name
         If ($azmonitorcsv.'Alert Name' -eq "")
         {
             $alertname = $azresourcename + '-' + $metricname
@@ -272,31 +289,87 @@ ForEach ($azresource in $azresources)
         {
             $alertname = $azresourcename + '-' + $azmonitorcsv.'Alert Name'
         }
-#Remove / character
+
+        #Remove / character
         If ($alertname -like '*/*')
         {
             $alertname = $alertname -replace ('/','-')
         }
 
-#Generate parameters files depending of the resource type
-#SQL Databases
-        If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
+        #Deploy monitoring
+        $deploymentname = $alertname
+
+        #Ensure deployment name is supported
+        #Remove space
+        If ($deploymentname -like '* *')
         {
-#JSON template file
-            $templatefilepath = "$psscriptroot\template_2015-01-01.json"
-#JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2015-01-01.json"
-        }
-        Else
-#Storage account, virtual machines, web apps
-        {
-#JSON template file
-            $templatefilepath = "$psscriptroot\template_2019-04-01.json"
-#JSON parameters file
-            $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2019-04-01.json"
+            $deploymentname = $deploymentname -replace (' ','-')
         }
 
-#Parameters
+        #Remove / character
+        If ($deploymentname -like '*/*')
+        {
+            $deploymentname = $deploymentname -replace ('/','-')
+        }
+
+        #Ensure deployment name is shorter than 64 characters
+        If ($deploymentname.Length -ge 64)
+        {
+            $deploymentname = $deploymentname.Substring(0,64) 
+        }
+
+        if($azmonitorscsv.'Alert Type' -eq "Dynamic") {
+            #Parameteres for dynamic alerts using bicep
+            $bicepAlertTemplatePath = "$psscriptroot\Dynamic-Alert.bicep"
+            $bicepAlertTemplateParamFilePath = "$psscriptroot\$fileslocation\Dynamic-Alert.bicepparam"
+
+            (Get-Content $bicepAlertTemplateParamFilePath) |
+            ForEach-Object {
+                switch -Wildcard ($_) {
+                    "using '../Dynamic-Alert.bicep'" {"using '../Dynamic-Alert.bicep'"}
+                    "" {""}
+                    "param alertName = *" {"param alertName = '$alertname'"}
+                    "param alertDescription = *" {"param alertDescription = '$alertdescription'"}
+                    "param alertSeverity = *" {"param alertSeverity = " + $azmonitorcsv.Severity}
+                    "param isEnabled = *" {"param isEnabled = true"}
+                    "param resourceId = *" {"param resourceId = '$azresourceid'"}
+                    "param metricName = *" {"param metricName = '$metricname'"}
+                    "param metricNamespace = *" {"param metricNamespace = '" + $azmonitorcsv.'Resource Type' + "'"}
+                    "param operator = *" {"param operator = '" + $azmonitorcsv.Operator +"'"}
+                    "param alertSensitivity = *" {"param alertSensitivity = '" + $azmonitorcsv.'Threshold Sensitivity' + "'"}
+                    "param timeAggregation = *" {"param timeAggregation = '" + $azmonitorcsv.'Aggregation Time' + "'"}
+                    "param windowSize = *" {"param windowSize = '" + $azmonitorcsv.'Window Size' + "'"}
+                    "param evaluationFrequency = *" {"param evaluationFrequency = '" + $azmonitorcsv.'Eval Frequency' + "'"}
+                    "param failingPeriods = *" {"param failingPeriods = " + $azmonitorcsv.'Failing Periods'}
+                    "param evalPeriods = *" {"param evalPeriods = " + $azmonitorcsv.'Evaluation Periods'}
+                    "param actionGroupId = *" {"param actionGroupId = '$actiongroupid'"}
+                }
+            } | Set-Content $bicepAlertTemplateParamFilePath
+        }
+        Else 
+        {
+            #Generate parameters files depending of the resource type
+            #SQL Databases
+            If($azresource.ResourceType -eq "Microsoft.Sql/servers/databases")
+            {
+                #JSON template file
+                $templatefilepath = "$psscriptroot\Alerts\template_2015-01-01.json"
+
+                #JSON parameters file
+                $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2015-01-01.json"
+            }
+            Else
+            {
+                #Storage account, virtual machines, web apps
+
+                #JSON template file
+                $templatefilepath = "$psscriptroot\template_2019-04-01.json"
+
+                #JSON parameters file
+                $parametersfilepath = "$psscriptroot\$fileslocation\parameters_2019-04-01.json"
+            }
+
+            #Parameters
             $paramfile = Get-Content $parametersfilepath -Raw | ConvertFrom-Json
             $paramfile.parameters.alertName.value = $alertname
             $paramfile.parameters.alertDescription.value = $alertdescription
@@ -311,32 +384,24 @@ ForEach ($azresource in $azresources)
             $paramfile.parameters.evaluationFrequency.value = $azmonitorcsv.'Eval Frequency'
             $paramfile.parameters.windowSize.value = $azmonitorcsv.'Window Size'
 
-#Update parameters file JSON
-        $updatedjson = $paramfile | ConvertTo-Json
-        $updatedjson > $parametersfilepath
-
-#Deploy monitoring
-        $deploymentname = $alertname
-#Esnure deployment name is supported
-#Remove space
-#Remove space
-        If ($deploymentname -like '* *')
-        {
-            $deploymentname = $deploymentname -replace (' ','-')
-        }
-#Remove / character
-        If ($deploymentname -like '*/*')
-        {
-            $deploymentname = $deploymentname -replace ('/','-')
-        }
-#Ensure deployment name is shorter than 64 characters
-        If ($deploymentname.Length -ge 64)
-        {
-            $deploymentname = $deploymentname.Substring(0,64) 
+            #Update parameters file JSON
+            $updatedjson = $paramfile | ConvertTo-Json
+            $updatedjson > $parametersfilepath
         }
 
-        Write-Host "Deploy monitoring alert" $azmonitorcsv.'Metric Display Name' "on resource" $azresourcename "with threshold value set to" $threshold -ForegroundColor Green -BackgroundColor Black
-        New-AzResourceGroupDeployment -Name $deploymentname -ResourceGroupName $azresourcergname -TemplateFile $templatefilepath -TemplateParameterFile $parametersfilepath
+        If ($excludedRgs -notcontains $azresourcergname)
+        {
+            if($azmonitorscsv.'Alert Type' -eq "Dynamic") {
+                Write-Host "Deploy dynamic monitoring alert" $azmonitorcsv.'Metric Display Name' "on resource" $azresourcename "with threshold sensitivity set to" $azmonitorcsv.'Threshold Sensitivity' -ForegroundColor Green -BackgroundColor Black
+                New-AzResourceGroupDeployment -Name $deploymentname -ResourceGroupName $azresourcergname -TemplateFile $bicepAlertTemplatePath -TemplateParameterFile $bicepAlertTemplateParamFilePath
+
+                continue
+            }
+
+            #Reaches this section if alert is not dynamic
+            Write-Host "Deploy monitoring alert" $azmonitorcsv.'Metric Display Name' "on resource" $azresourcename "with threshold value set to" $threshold -ForegroundColor Green -BackgroundColor Black
+            New-AzResourceGroupDeployment -Name $deploymentname -ResourceGroupName $azresourcergname -TemplateFile $templatefilepath -TemplateParameterFile $parametersfilepath
+        }
     }
 }
 
