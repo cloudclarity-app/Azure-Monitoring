@@ -87,7 +87,7 @@ foreach ($rule in $alertRules) {
     }
     catch {
         # If the resource does not exist, delete the alert rule
-        Write-Warning "Resource $resourceId does not exist. Deleting alert rule $($rule.Name)..." -ForegroundColor Red -BackgroundColor Black
+        Write-Warning "Resource $resourceId does not exist. Deleting alert rule $($rule.Name)..."
         Remove-AzMetricAlertRuleV2 -ResourceGroupName $rule.resourceGroup -Name $rule.Name
         Write-Output "Alert rule $($rule.Name) deleted successfully." -ForegroundColor Yellow -BackgroundColor Black
     }
